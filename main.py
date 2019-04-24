@@ -366,9 +366,9 @@ async def ascii(ctx, config):  # ascii command
 async def about(ctx):  # about command
     embed=discord.Embed(color=0x7e0000)
     embed.set_author(name="%s#%s (BOT)" %(client.user.name,client.user.discriminator), icon_url=client.user.avatar_url)
-    embed.add_field(name="created by:", value="%s#%s" %((await client.get_user_info("391109829755797514")).name, (await client.get_user_info("391109829755797514")).discriminator), inline=False)
+    embed.add_field(name="created by:", value="%s#%s" %((await client.get_user_info("391109829755797514")).name, (await client.fetch_user("391109829755797514")).discriminator), inline=False)
     embed.add_field(name="created in:", value="Python 3.6.x with discord api", inline=False)
-    embed.add_field(name="hosted by:", value="%s#%s" %((await client.get_user_info("391340428315852801")).name, (await client.get_user_info("391340428315852801")).discriminator), inline=False)
+    embed.add_field(name="hosted by:", value="%s#%s" %((await client.fetch_user("391340428315852801")).name, (await client.fetch_user("391340428315852801")).discriminator), inline=False)
     embed.set_footer(text="Pm me at @%s#%s for info/inquiries/bug reports" %((await client.get_user_info("391109829755797514")).name, (await client.get_user_info("391109829755797514")).discriminator))
     await ctx.send(embed=embed)
 
