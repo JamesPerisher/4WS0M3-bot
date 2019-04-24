@@ -11,7 +11,7 @@ import urllib.request as request
 import db_interact
 
 
-testing = False
+testing = True
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
 bot_prefix = "?"
@@ -228,7 +228,7 @@ async def get_info(ctx, user=None):  # info command
         if user[0:2] == "<@" and user[-1] == ">":  # mention to id
             user = user[2:-1]
 
-        u = await client.get_user_info(user)
+        u = await client.get_user(user)
         await info(ctx, u)
         return
     except Exception as e:
@@ -329,21 +329,22 @@ async def admin_help(ctx):  # admin-help command
 @client.command(pass_context=True, name="chat",
                 description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
 async def chat(ctx, channel):  # chat command
-    if not ctx.message.author.server_permissions.administrator:
+    if not ctx.channel.permissions_for(ctx.author).administrator:
         await ctx.send("```You do not have permission to do that!```")
         return
     try:
         channel = client.get_channel(str(channel).replace("<", "").replace(">", "").replace("#", ""))
-    except:
-        pass
-    if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
-            channel = lambda : print(end="")
-            channel.id = 0
-            channel.name = "None"
-    db_interact.start()
-    db_interact.update_channel(ctx.message.server, channel.id)
-    db_interact.close()
-    await ctx.send("```Set in-game live chat to: %s```" %channel.name)
+    except Exception as e:
+        print(e)
+    else:
+        if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
+                channel = lambda : print(end="")
+                channel.id = 0
+                channel.name = "None"
+        db_interact.start()
+        db_interact.update_channel(ctx.message.server, channel.id)
+        db_interact.close()
+        await ctx.send("```Set in-game live chat to: %s```" %channel.name)
 
 @client.command(pass_context=True, name="ascii",
                 description="Configure ascii art allowence with [True/False]", brief="Allow ascii art")
@@ -366,10 +367,10 @@ async def ascii(ctx, config):  # ascii command
 async def about(ctx):  # about command
     embed=discord.Embed(color=0x7e0000)
     embed.set_author(name="%s#%s (BOT)" %(client.user.name,client.user.discriminator), icon_url=client.user.avatar_url)
-    embed.add_field(name="created by:", value="%s#%s" %((await client.get_user_info("391109829755797514")).name, (await client.fetch_user("391109829755797514")).discriminator), inline=False)
+    embed.add_field(name="created by:", value="%s#%s" %((client.get_user("391109829755797514")).name, (await client.fetch_user("391109829755797514")).discriminator), inline=False)
     embed.add_field(name="created in:", value="Python 3.6.x with discord api", inline=False)
     embed.add_field(name="hosted by:", value="%s#%s" %((await client.fetch_user("391340428315852801")).name, (await client.fetch_user("391340428315852801")).discriminator), inline=False)
-    embed.set_footer(text="Pm me at @%s#%s for info/inquiries/bug reports" %((await client.get_user_info("391109829755797514")).name, (await client.get_user_info("391109829755797514")).discriminator))
+    embed.set_footer(text="Pm me at @%s#%s for info/inquiries/bug reports" %((await client.get_user("391109829755797514")).name, (await client.get_user("391109829755797514")).discriminator))
     await ctx.send(embed=embed)
 
 
