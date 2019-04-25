@@ -7,7 +7,7 @@ import sys
 
 print("Version: %s"%discord.__version__)
 
-Client = discord.Client()
+#Client = discord.Client()
 bot_prefix = "?"
 client = commands.Bot(command_prefix=bot_prefix)
 client.remove_command('help')

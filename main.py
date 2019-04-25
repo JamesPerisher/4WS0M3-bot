@@ -86,7 +86,7 @@ async def on_message(message):  # on message event
     if message.author.id == client.user.id: # ignore messaged from myself
         return
 
-    if message.channel.id == "565114743975575572": # message.embeds forwarder (takes game chat from another of my discords and forwrds it to the new one) (cos u cant have that code)
+    if message.channel.id == "565114743975575572": # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
         db_interact.start()
         for i in db_interact.all_chat():
             await client.send_message(client.get_channel(i), embed=discord.Embed(**message.embeds[0]))
@@ -198,7 +198,7 @@ async def server_info(ctx, server=None):  # server-info command
 
 
 async def info(ctx, user):
-    m = ctx.message.server.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
+    m = ctx.Message.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
 
     embed=discord.Embed(color=m.colour)  # embed (colour has a u cos aussie)
     embed.set_author(name="%s#%s" %(user.name,user.discriminator), icon_url=user.avatar_url)
@@ -286,7 +286,7 @@ async def randomfact(ctx):  # fact command
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
     db_interact.start()
-    if db_interact.is_ascii(ctx.message.server):
+    if db_interact.is_ascii(ctx.Message.guild):
         with open("ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
@@ -342,7 +342,7 @@ async def chat(ctx, channel):  # chat command
                 channel.id = 0
                 channel.name = "None"
         db_interact.start()
-        db_interact.update_channel(ctx.message.server, channel.id)
+        db_interact.update_channel(ctx.Message.guild, channel.id)
         db_interact.close()
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
 
@@ -355,10 +355,10 @@ async def ascii(ctx, config):  # ascii command
     db_interact.start()
     if config.lower().strip() == "true":
         await ctx.send("```Updated show ascii to True```")
-        db_interact.update_ascii(ctx.message.server, 1)
+        db_interact.update_ascii(ctx.Message.guild, 1)
     if config.lower().strip() == "false":
         await ctx.send("```Updated show ascii to False```")
-        db_interact.update_ascii(ctx.message.server, 0)
+        db_interact.update_ascii(ctx.Message.guild, 0)
     db_interact.close()
 
 
@@ -367,10 +367,11 @@ async def ascii(ctx, config):  # ascii command
 async def about(ctx):  # about command
     embed=discord.Embed(color=0x7e0000)
     embed.set_author(name="%s#%s (BOT)" %(client.user.name,client.user.discriminator), icon_url=client.user.avatar_url)
-    embed.add_field(name="created by:", value="%s#%s" %((client.get_user("391109829755797514")).name, (await client.fetch_user("391109829755797514")).discriminator), inline=False)
-    embed.add_field(name="created in:", value="Python 3.6.x with discord api", inline=False)
-    embed.add_field(name="hosted by:", value="%s#%s" %((await client.fetch_user("391340428315852801")).name, (await client.fetch_user("391340428315852801")).discriminator), inline=False)
-    embed.set_footer(text="Pm me at @%s#%s for info/inquiries/bug reports" %((await client.get_user("391109829755797514")).name, (await client.get_user("391109829755797514")).discriminator))
+    embed.add_field(name="Created by:", value="%s#%s" %((client.get_user(391109829755797514).name), (client.get_user(391109829755797514)).discriminator), inline=False)
+    embed.add_field(name="Created in:", value="Python 3.6.x with discord API", inline=False)
+    embed.add_field(name="Runs in:", value="Python 3.7.x updated by JKookaburra", inline=False)
+    embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator), inline=False)
+    embed.set_footer(text="PM PaulN07 (@%s#%s) or JKookaburra (@%s#%s) for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator, (client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator))
     await ctx.send(embed=embed)
 
 
