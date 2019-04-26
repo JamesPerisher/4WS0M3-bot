@@ -31,8 +31,8 @@ Utilities:
   admin-help   admin commands help
 
 Spam:
-  genocide     Whatch the snappening
-  Penis        Display Penis
+  genocide     Watch the snappening
+  penis        Display Penis
   yodish       Yoda speak Yes, hmmm.
 
 Fun:
@@ -186,14 +186,15 @@ async def server_info(ctx, server=None):  # server-info command
 
 
 async def info(ctx, user):
-    m = ctx.Message.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
+    m = ctx.message.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
+
 
     embed=discord.Embed(color=m.colour)  # embed (colour has a u cos aussie)
     embed.set_author(name="%s#%s" %(user.name,user.discriminator), icon_url=user.avatar_url)
     embed.add_field(name="ID:", value=user.id, inline=True)
     embed.add_field(name="Status:", value=m.status, inline=True)
-    if not m.game == None:
-        embed.add_field(name="presence:", value="Playing %s" %m.game, inline=True)
+    if not m.activity == None:
+        embed.add_field(name="presence:", value="Playing %s" %m.activity, inline=True)
     else:
         embed.add_field(name="presence:", value="None", inline=True)
 
@@ -201,7 +202,7 @@ async def info(ctx, user):
     embed.add_field(name="Colour:", value=str(m.colour), inline=True)
     embed.add_field(name="Account creation (UTC):", value=str(user.created_at).split(".")[0], inline=True)
 
-    await ctx.send(embed=embed)  # say embed
+    await ctx.send(embed=embed)  # say embed variable
 
 
 
@@ -209,18 +210,18 @@ async def info(ctx, user):
                 description="Get info on a user via mention or id", brief="Get info on user",
                 aliases=["get-info"])
 async def get_info(ctx, user=None):  # info command
-    try:
-        if user == None: # no user passed
+    if user == None: # no user passed
             user = ctx.message.author.id
+#try
+    if user[0:2] == "<@" and user[-1] == ">":  # mention to id
+        user = user[2:-1]
 
-        if user[0:2] == "<@" and user[-1] == ">":  # mention to id
-            user = user[2:-1]
+        u = await client.fetch_user(user)
+    await info(ctx, u)
+    return
 
-        u = await client.get_user(user)
-        await info(ctx, u)
-        return
-    except Exception as e:
-        await ctx.send("You fucked up: %s" %e)  # catch errors
+#    except Exception as e:
+#        await ctx.send("You fucked up: %s" %e)  # catch errors
 
 
 @client.command(pass_context=True, name="math",
@@ -274,18 +275,18 @@ async def randomfact(ctx):  # fact command
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
     db_interact.start()
-    if db_interact.is_ascii(ctx.Message.guild):
+    if db_interact.is_ascii(ctx.message.guild):
         with open("ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
     else:
-        await ctx.send("```Ascii art is disabled on this server idk why tho.```")
+        await ctx.send("```Ascii art is disabled on this server... IDK why though.```")
     db_interact.close()
 
 @client.command(pass_context=True, name="penis",
                 description="Get your penis size", brief="Display Penis")
 async def penis(ctx):  # penis command
-    if ctx.message.author.id == "391109829755797514":
+    if ctx.message.author.id == 391109829755797514:
         await ctx.send("8%sD" %("="*10))
     else:
         await ctx.send("8%sD" %("="*random.randint(1, 9)))
@@ -321,32 +322,33 @@ async def chat(ctx, channel):  # chat command
         await ctx.send("```You do not have permission to do that!```")
         return
     try:
-        channel = client.get_channel(str(channel).replace("<", "").replace(">", "").replace("#", ""))
+        channel = client.get_channel(int(str(channel).replace("<", "").replace(">", "").replace("#", "")))
     except Exception as e:
         print(e)
-    else:
-        if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
-                channel = lambda : print(end="")
-                channel.id = 0
-                channel.name = "None"
-        db_interact.start()
-        db_interact.update_channel(ctx.Message.guild, channel.id)
-        db_interact.close()
-        await ctx.send("```Set in-game live chat to: %s```" %channel.name)
+    if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
+        channel = lambda : print(end="")
+        channel.id = 0
+        channel.name = "None"
+        print("test1123")
+
+    db_interact.start()
+    db_interact.update_channel(ctx.message.guild, channel.id)
+    db_interact.close()
+    await ctx.send("```Set in-game live chat to: %s```" %channel.name)
 
 @client.command(pass_context=True, name="ascii",
                 description="Configure ascii art allowence with [True/False]", brief="Allow ascii art")
 async def ascii(ctx, config):  # ascii command
-    if not ctx.message.author.server_permissions.administrator:
+    if not ctx.channel.permissions_for(ctx.author).administrator:
         await ctx.send("```You do not have permission to do that!```")
         return
     db_interact.start()
     if config.lower().strip() == "true":
         await ctx.send("```Updated show ascii to True```")
-        db_interact.update_ascii(ctx.Message.guild, 1)
+        db_interact.update_ascii(ctx.message.guild, 1)
     if config.lower().strip() == "false":
         await ctx.send("```Updated show ascii to False```")
-        db_interact.update_ascii(ctx.Message.guild, 0)
+        db_interact.update_ascii(ctx.message.guild, 0)
     db_interact.close()
 
 
@@ -359,17 +361,16 @@ async def about(ctx):  # about command
     embed.add_field(name="Created in:", value="Python 3.6.x with discord API", inline=False)
     embed.add_field(name="Runs in:", value="Python 3.7.x updated by JKookaburra", inline=False)
     embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator), inline=False)
-    embed.set_footer(text="PM PaulN07 (@%s#%s) for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator))
+    embed.set_footer(text="PM me at @%s#%s for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator))
     await ctx.send(embed=embed)
 
 
-client.run("NDgxMzU5MDk5NTE5NDM0NzUy.DzGmmQ.6G_8oiA1TtgifNSCjSlsQFcwqdA")
 client.run(sys.argv[1])  # start client
 
 
 
 # TODO: maybe
 
-# clap = play clap in vc
+# clap = slow play clap in vc
 # machine learning spam detector
 # meme = send meme
