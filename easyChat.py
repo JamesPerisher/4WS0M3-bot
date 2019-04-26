@@ -28,33 +28,54 @@ async def on_message(message):
         return
     if message.channel.id == 563532653673054209:
         if message.author.id == 508296387985801226:
-            #print(message.embeds[0].description)
 
-            mes = message.Embed(description)
+            unedited_text = message.embeds[0].description
+            #print(unedited_text)
+            if unedited_text[0][0] != "*":
 
-            mes = mes.split(">** ")
-            print(mes)
-            user = mes[0].strip()
-            line = "%s> %s" %(user, ">** ".join(mes[1::]))
-            print(user, line)
+                message = unedited_text
+            else:
 
-            color=discord.Embed(title=line, color=0x004672)
+                split_text = unedited_text.split(">**")
+
+                #USERNAME
+                user = split_text[0]
+                user = user.replace("**<", "").replace("\\_", "")
+
+                #text
+                #print(unedited_text)
+                text = split_text[1][1::]
+                if text[0] == " ":
+                    text = text[1::]
+                elif text[0] == " >":
+                    text = text[2::]
+
+                message = ("**<%s>** %s" %(user, text))
+
+            message = message.replace("zozzle.gg", "discord.gg")
+
+            print(unedited_text)
+            print(message)
+
+
+            text=discord.Embed(title=message, color=0x004672)
             try:
-                if mes[1][0] == ">":
-                    color=discord.Embed(title=line, color=0x009e0a)
+                if split_text[1][0] == ">":
+
+                    text=discord.Embed(title=message, color=0x009e0a)
             except:
                 pass
 
             if user in ["PaulN07","PaulN07\\_1"]:
-                color=discord.Embed(title=line, color=0x7e0000)
+                text=discord.Embed(title=message, color=0x7e0000)
 
             if user in ["JKookaburra", "JKookaburra_1", "JKookaburra_2", "JKookaburra_3", "JKookaburra_4", "JKookaburra_5", "JKookaburra_6"]:
-                color=discord.Embed(title=line, color=0x1f8b4c)
+                text=discord.Embed(title=message, color=0x1f8b4c)
 
-            if len(mes) == 1:
-                color=discord.Embed(title=mes[0], color=0xe56706)
+            """if len(mes) == 1:
+                text=discord.Embed(title=mes[0], color=0xe56706)"""
 
-            if not line == "":
-                await (get_channel(565114743975575572)).send(content=color)
+            if not message == "":
+                await client.get_channel(565114743975575572).send(embed=text)
 
 client.run(sys.argv[1], bot=False)

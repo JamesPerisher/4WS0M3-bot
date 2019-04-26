@@ -69,7 +69,6 @@ async def on_ready():  # bot start event
 @client.event
 async def on_message(message):  # on message event
     message.content = message.content.lower().strip()
-    print("I am here 1")
     try:
         #TODO why do we strip again?
         if message.content.strip()[1::] == "help":
@@ -80,7 +79,6 @@ async def on_message(message):  # on message event
             await client.send_message(message.channel, help)
             return
     except:
-        print("Something did not work.")
         pass
 
     if message.author.id == client.user.id: # ignore messaged from myself
@@ -130,12 +128,10 @@ async def ping(ctx):  # ping command
 
     #await client.send_message('Pong! %sms' %reponse_time)
     try:
-        print("I am here 2")
         print('Pong! %sms' %reponse_time)
         await ctx.send('Pong! %sms' %reponse_time)
         #await client.send_message(ctx.channel, help)
     except:
-        print("Something went wrong.")
         pass
     #await client.help()
 
@@ -371,7 +367,7 @@ async def about(ctx):  # about command
     embed.add_field(name="Created in:", value="Python 3.6.x with discord API", inline=False)
     embed.add_field(name="Runs in:", value="Python 3.7.x updated by JKookaburra", inline=False)
     embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator), inline=False)
-    embed.set_footer(text="PM PaulN07 (@%s#%s) or JKookaburra (@%s#%s) for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator, (client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator))
+    embed.set_footer(text="PM PaulN07 (@%s#%s) for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator))
     await ctx.send(embed=embed)
 
 
