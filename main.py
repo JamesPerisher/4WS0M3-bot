@@ -23,6 +23,7 @@ Information:
   ping         Get a test reponse
   info         Get info on user
   server       Minecrft Server Information
+  player       Minecrft Player Information
   about        My creator
 
 Utilities:
@@ -69,14 +70,14 @@ async def on_ready():  # bot start event
 @client.event
 async def on_message(message):  # on message event
     message.content = message.content.lower().strip()
-    try:
-        #TODO why do we strip again?
-        if message.content.strip()[1::] == "help":
-            await client.send_message(message.channel, help)
+    try:  # remove this and try to make it work
+        #TODO why do we strip again?   >   didnt work without strip
+        if message.content.strip()[1::].strip() == "help":
+            await message.channel.send(help)
             return
-        #TODO why do we strip again? elif?????
+        #TODO why do we strip again? elif?????   >   not elif chance for error not nessasary, didnt work without strip
         if message.content.strip()[1::].split(" ")[1].lower() in ["information","utilities","spam","fun"]:
-            await client.send_message(message.channel, help)
+            await message.channel.send(help)
             return
     except:
         pass
@@ -91,7 +92,7 @@ async def on_message(message):  # on message event
 
         db_interact.close()
 
-    if message.author.id == "391109829755797514": # admin-my_commands commands
+    if message.author.id == "391109829755797514": # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
             await new_pres()
 
@@ -109,7 +110,7 @@ async def new_pres(): # presence changer
 async def presence_task(): # presence task
     while True:
         await new_pres()
-        await asyncio.sleep(random.randint(5, 5*60))
+        await asyncio.sleep(random.randint(5, 5*60))  # changes presence every 5seconds to 5mins
 
 
 #===========================COMMANDS===========================
@@ -121,19 +122,11 @@ async def presence_task(): # presence task
                 brief="Get a test reponse")
 async def ping(ctx):  # ping command
     current_time = time.time()
-    print(ctx.message.created_at.timetuple())
-    #send_time = time.mktime(ctx.message.timestamp.timetuple()) # sent time
     send_time = time.mktime(ctx.message.created_at.timetuple()) # sent time
     reponse_time = round((current_time - send_time)/1000, 2) # time between send_time and now
 
-    #await client.send_message('Pong! %sms' %reponse_time)
-    try:
-        print('Pong! %sms' %reponse_time)
-        await ctx.send('Pong! %sms' %reponse_time)
-        #await client.send_message(ctx.channel, help)
-    except:
-        pass
-    #await client.help()
+    await ctx.send('Pong! %sms' %reponse_time)
+
 
 
 @client.command(pass_context=True,
@@ -372,6 +365,42 @@ async def about(ctx):  # about command
 
 
 
+
+@client.command(pass_context=True, name="player",
+                description="Gets info on Minecraft player", brief="Minecrft Player Information",
+                aliases=["player-info", "info-player"])
+async def player_info(ctx, username=None):  # player-info command
+    username = username.replace("\\_", "_")
+    if username == None:
+        await ctx.send("``Gets info on Minecraft Player\n\n?[player|player-info|info-player] [username]```")
+        return
+    try:
+        r = request.urlopen('https://api.mojang.com/users/profiles/minecraft/%s' %username)
+        a = eval(r.read().decode().replace(":false,", ":False,").replace(":true,", ":True,"))
+        r = request.urlopen('https://api.mojang.com/user/profiles/%s/names' %a["id"])
+        b = eval(r.read().decode().replace(":false,", ":False,").replace(":true,", ":True,"))
+        request.urlopen("https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
+        request.urlopen("https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
+        names = ""
+        for i in b:
+            names = names + ", " + str(i["name"])
+        names = names[1::]
+
+
+        embed=discord.Embed(color=0x7e0000)
+        embed.set_author(name=a["name"], icon_url="https://crafatar.com/avatars/%s" %a["id"])
+        embed.set_thumbnail(url="https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
+        embed.add_field(name="uuid", value=a["id"], inline=True)
+        embed.add_field(name="name history", value=names, inline=True)
+        embed.add_field(name="Name MC", value="https://namemc.com/profile/%s"%a["id"], inline=True)
+        await ctx.send(embed=embed)
+    except:
+        await ctx.send("```No current player named: %s```" %username)
+
+
+
+
+client.run("NDgxMzU5MDk5NTE5NDM0NzUy.DzGmmQ.6G_8oiA1TtgifNSCjSlsQFcwqdA")
 client.run(sys.argv[1])  # start client
 
 
