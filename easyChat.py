@@ -28,6 +28,7 @@ async def on_message(message):
         return
     if message.channel.id == 563532653673054209:
         if message.author.id == 508296387985801226:
+            user = None
 
             unedited_text = message.embeds[0].description
             #print(unedited_text)
@@ -52,25 +53,24 @@ async def on_message(message):
 
                 message = ("**<%s>** %s" %(user, text))
 
-            message = message.replace("zozzle.gg", "discord.gg")
+            message = message.replace("zozzle.gg", "discord.gg").replace("**", "")
 
-            print(unedited_text)
             print(message)
 
 
             text=discord.Embed(title=message, color=0x004672)
             try:
-                if split_text[1][0] == ">":
-
+                if split_text[1][1] == ">":
                     text=discord.Embed(title=message, color=0x009e0a)
             except:
                 pass
 
-            if user in ["PaulN07","PaulN07\\_1"]:
-                text=discord.Embed(title=message, color=0x7e0000)
+            if not user == None:
+                if user in ["PaulN07","PaulN07\\_1"]:
+                    text=discord.Embed(title=message, color=0x7e0000)
 
-            if user in ["JKookaburra", "JKookaburra_1", "JKookaburra_2", "JKookaburra_3", "JKookaburra_4", "JKookaburra_5", "JKookaburra_6"]:
-                text=discord.Embed(title=message, color=0x1f8b4c)
+                if user in ["JKookaburra", "JKookaburra_1", "JKookaburra_2", "JKookaburra_3", "JKookaburra_4", "JKookaburra_5", "JKookaburra_6"]:
+                    text=discord.Embed(title=message, color=0x1f8b4c)
 
             """if len(mes) == 1:
                 text=discord.Embed(title=mes[0], color=0xe56706)"""

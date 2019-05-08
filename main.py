@@ -187,7 +187,7 @@ async def server_info(ctx, server=None):  # server-info command
 
 
 async def info(ctx, user):
-    m = ctx.Message.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
+    m = ctx.messagectx.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
 
     embed=discord.Embed(color=m.colour)  # embed (colour has a u cos aussie)
     embed.set_author(name="%s#%s" %(user.name,user.discriminator), icon_url=user.avatar_url)
@@ -275,7 +275,7 @@ async def randomfact(ctx):  # fact command
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
     db_interact.start()
-    if db_interact.is_ascii(ctx.Message.guild):
+    if db_interact.is_ascii(ctx.messagectx.guild):
         with open("ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
@@ -331,7 +331,7 @@ async def chat(ctx, channel):  # chat command
                 channel.id = 0
                 channel.name = "None"
         db_interact.start()
-        db_interact.update_channel(ctx.Message.guild, channel.id)
+        db_interact.update_channel(ctx.messagectx.guild, channel.id)
         db_interact.close()
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
 
@@ -344,10 +344,10 @@ async def ascii(ctx, config):  # ascii command
     db_interact.start()
     if config.lower().strip() == "true":
         await ctx.send("```Updated show ascii to True```")
-        db_interact.update_ascii(ctx.Message.guild, 1)
+        db_interact.update_ascii(ctx.messagectx.guild, 1)
     if config.lower().strip() == "false":
         await ctx.send("```Updated show ascii to False```")
-        db_interact.update_ascii(ctx.Message.guild, 0)
+        db_interact.update_ascii(ctx.messagectx.guild, 0)
     db_interact.close()
 
 
@@ -399,6 +399,8 @@ async def player_info(ctx, username=None):  # player-info command
 
 
 
+
+client.run("NDgxMzU5MDk5NTE5NDM0NzUy.DzGmmQ.6G_8oiA1TtgifNSCjSlsQFcwqdA")
 client.run(sys.argv[1])  # start client
 
 
