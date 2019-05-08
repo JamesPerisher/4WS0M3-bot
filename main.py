@@ -400,13 +400,4 @@ async def player_info(ctx, username=None):  # player-info command
 
 
 
-client.run("NDgxMzU5MDk5NTE5NDM0NzUy.DzGmmQ.6G_8oiA1TtgifNSCjSlsQFcwqdA")
 client.run(sys.argv[1])  # start client
-
-
-
-# TODO: maybe
-
-# clap = play clap in vc
-# machine learning spam detector
-# meme = send meme
