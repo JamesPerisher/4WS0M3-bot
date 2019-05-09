@@ -9,13 +9,17 @@ from datetime import datetime,timedelta
 import sys
 import urllib.request as request
 import db_interact
+import json
 
 
-testing = True
+configuration = json.load(open("config.json"))
+
+testing = bool(configuration["bot"]["testing"])
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
-bot_prefix = "?"
+bot_prefix = configuration["bot"]["prefix"]
 client = commands.Bot(command_prefix=bot_prefix)
+colour = configuration["bot"]["bot_colour"]
 
 help = """```
 Information:
@@ -85,14 +89,14 @@ async def on_message(message):  # on message event
     if message.author.id == client.user.id: # ignore messaged from myself
         return
 
-    if message.channel.id == "565114743975575572": # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
+    if message.channel.id == configuration["bot"]["forward_from"]: # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
         db_interact.start()
         for i in db_interact.all_chat():
             await client.send_message(client.get_channel(i), embed=discord.Embed(**message.embeds[0]))
 
         db_interact.close()
 
-    if message.author.id == "391109829755797514": # admin-my_commands commands - ignore these
+    if message.author.id == configuration["bot"]["owner"]: # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
             await new_pres()
 
@@ -175,7 +179,7 @@ async def server_info(ctx, server=None):  # server-info command
             a["motd"] = a["motd"].replace(i, "")
 
 
-        embed=discord.Embed(description=a["motd"], color=0x7e0000)
+        embed=discord.Embed(description=a["motd"], color=eval("0x%s"%colour))
         embed.set_author(name="%s" %server, icon_url="https://eu.mc-api.net/v3/server/favicon/%s" %server)
         embed.add_field(name="online", value=a["online"], inline=True)
         embed.add_field(name="max players", value=a["players"]["max"], inline=True)
@@ -354,13 +358,17 @@ async def ascii(ctx, config):  # ascii command
 @client.command(pass_context=True, name="about",
                 description="Get details of my creator", brief="My creator")
 async def about(ctx):  # about command
-    embed=discord.Embed(color=0x7e0000)
+    embed=discord.Embed(coloreval("0x%s"%colour))
     embed.set_author(name="%s#%s (BOT)" %(client.user.name,client.user.discriminator), icon_url=client.user.avatar_url)
-    embed.add_field(name="Created by:", value="%s#%s" %((client.get_user(391109829755797514).name), (client.get_user(391109829755797514)).discriminator), inline=False)
-    embed.add_field(name="Created in:", value="Python 3.6.x with discord API", inline=False)
-    embed.add_field(name="Runs in:", value="Python 3.7.x updated by JKookaburra", inline=False)
-    embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(391340428315852801)).name, (client.get_user(391340428315852801)).discriminator), inline=False)
-    embed.set_footer(text="PM PaulN07 (@%s#%s) for info/inquiries/bug reports" %((client.get_user(391109829755797514)).name, (client.get_user(391109829755797514)).discriminator))
+    embed.add_field(name="Created by:", value="%s#%s" %((client.get_user(configuration["bot"]["owner"]).name), (client.get_user(configuration["bot"]["owner"])).discriminator), inline=False)
+    embed.add_field(name="Created in:", value=configuration["credits"]["created_in"], inline=False)
+    embed.add_field(name="Runs in:", value=configuration["credits"]["runs_in"], inline=False)
+    embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(configuration["credits"]["host"])).name, (client.get_user(configuration["credits"]["host"])).discriminator), inline=False)
+
+    footer_data = configuration["credits"]["footer"]
+    for i in range(len(footer_data["users"])):
+        footer_data["text"] = footer_data["text"].replace("<name%s>"%i, client.get_user(footer_data["users"][i]).name)
+        footer_data["text"] = footer_data["text"].replace("<id%s>"%i, client.get_user(footer_data["users"][i]).discriminator)
     await ctx.send(embed=embed)
 
 
@@ -387,7 +395,7 @@ async def player_info(ctx, username=None):  # player-info command
         names = names[1::]
 
 
-        embed=discord.Embed(color=0x7e0000)
+        embed=discord.Embed(color=eval("0x%s"%colour))
         embed.set_author(name=a["name"], icon_url="https://crafatar.com/avatars/%s" %a["id"])
         embed.set_thumbnail(url="https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
         embed.add_field(name="uuid", value=a["id"], inline=True)
