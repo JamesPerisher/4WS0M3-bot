@@ -15,6 +15,7 @@ import json
 configuration = json.load(open("config.json"))
 
 testing = bool(configuration["bot"]["testing"])
+print(time.time())
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
 bot_prefix = configuration["bot"]["prefix"]
@@ -190,26 +191,6 @@ async def server_info(ctx, server=None):  # server-info command
         await ctx.send(embed=embed)
 
 
-async def info(ctx, user):
-    m = ctx.messagectx.guild.get_member(user.id)  # get member object (da fuck i need this and not a user object idk)
-
-    embed=discord.Embed(color=m.colour)  # embed (colour has a u cos aussie)
-    embed.set_author(name="%s#%s" %(user.name,user.discriminator), icon_url=user.avatar_url)
-    embed.add_field(name="ID:", value=user.id, inline=True)
-    embed.add_field(name="Status:", value=m.status, inline=True)
-    if not m.game == None:
-        embed.add_field(name="presence:", value="Playing %s" %m.game, inline=True)
-    else:
-        embed.add_field(name="presence:", value="None", inline=True)
-
-    embed.add_field(name="Bot:", value=str(user.bot), inline=True)
-    embed.add_field(name="Colour:", value=str(m.colour), inline=True)
-    embed.add_field(name="Account creation (UTC):", value=str(user.created_at).split(".")[0], inline=True)
-
-    await ctx.send(embed=embed)  # say embed
-
-
-
 @client.command(pass_context=True, name="info",
                 description="Get info on a user via mention or id", brief="Get info on user",
                 aliases=["get-info"])
@@ -221,8 +202,23 @@ async def get_info(ctx, user=None):  # info command
         if user[0:2] == "<@" and user[-1] == ">":  # mention to id
             user = user[2:-1]
 
-        u = await client.get_user(user)
-        await info(ctx, u)
+        u = client.get_user(int(user))
+        m = ctx.guild.get_member(u.id)  # get member object (da fuck i need this and not a user object idk)
+
+        embed=discord.Embed(color=m.colour)  # embed (colour has a u cos aussie)
+        embed.set_author(name="%s#%s" %(u.name,u.discriminator), icon_url=u.avatar_url)
+        embed.add_field(name="ID:", value=u.id, inline=True)
+        embed.add_field(name="Status:", value=m.status, inline=True)
+        if not m.activity  == None:
+            embed.add_field(name="presence:", value="Playing %s" %m.activity , inline=True)
+        else:
+            embed.add_field(name="presence:", value="None", inline=True)
+
+        embed.add_field(name="Bot:", value=str(u.bot), inline=True)
+        embed.add_field(name="Colour:", value=str(m.colour), inline=True)
+        embed.add_field(name="Account creation (UTC):", value=str(u.created_at).split(".")[0], inline=True)
+
+        await ctx.send(embed=embed)  # say embed
         return
     except Exception as e:
         await ctx.send("You fucked up: %s" %e)  # catch errors
@@ -233,14 +229,19 @@ async def get_info(ctx, user=None):  # info command
                 aliases=["calc", "cal"])
 async def math(ctx, *args):  # math command
     raw_equation = " ".join(args)
-    equation = raw_equation.replace(" ", "").replace("^", "**").replace("e", "*10**").replace("pi", "3.14159265358979323846").replace("π", "3.14159265358979323846")
+    equation = raw_equation.replace(" ", "").replace("^", "**").replace("e", "*10**").replace("pi", "π").replace("π", "3.14159265358979323846")
     equation = list(equation)
     for i in range(len(equation)):
         letter = equation[i]
         if letter not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '+', '/', '*', '%', '.', '(', ')']:
             equation[i] = "$"
     equation = "".join(equation).replace("$", "")
-    out = eval(equation)
+    try:
+        out = eval(equation)
+    except:
+        out = "Invalid equation"
+    if len(args) == 0:
+        out = "No equation"
     await ctx.send("%s ≈ %s" %(raw_equation, out))
 
 
@@ -255,11 +256,12 @@ async def genocide(ctx):  # genocide command
 @client.command(pass_context=True, name="random",
                 description="Generate a number between to numbers", brief="Random number",
                 aliases=["rand"])
-async def randomint(ctx, min=None, max=None):  # random-int command
-    if min == None:
-        min=0
-    if max == None:
-        max=100
+async def randomint(ctx, min=0, max=100):  # random-int command
+    if max < min:
+        a = max
+        max = min
+        min = a
+        del a
     try:
         await ctx.send(str(random.randint(int(min), int(max))))
     except Exception as e:
@@ -322,7 +324,7 @@ async def admin_help(ctx):  # admin-help command
 @client.command(pass_context=True, name="chat",
                 description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
 async def chat(ctx, channel):  # chat command
-    if not ctx.channel.permissions_for(ctx.author).administrator:
+    if not ctx.message.author.server_permissions.administrator:
         await ctx.send("```You do not have permission to do that!```")
         return
     try:
@@ -358,7 +360,7 @@ async def ascii(ctx, config):  # ascii command
 @client.command(pass_context=True, name="about",
                 description="Get details of my creator", brief="My creator")
 async def about(ctx):  # about command
-    embed=discord.Embed(coloreval("0x%s"%colour))
+    embed=discord.Embed(color=eval("0x%s"%colour))
     embed.set_author(name="%s#%s (BOT)" %(client.user.name,client.user.discriminator), icon_url=client.user.avatar_url)
     embed.add_field(name="Created by:", value="%s#%s" %((client.get_user(configuration["bot"]["owner"]).name), (client.get_user(configuration["bot"]["owner"])).discriminator), inline=False)
     embed.add_field(name="Created in:", value=configuration["credits"]["created_in"], inline=False)
@@ -370,8 +372,6 @@ async def about(ctx):  # about command
         footer_data["text"] = footer_data["text"].replace("<name%s>"%i, client.get_user(footer_data["users"][i]).name)
         footer_data["text"] = footer_data["text"].replace("<id%s>"%i, client.get_user(footer_data["users"][i]).discriminator)
     await ctx.send(embed=embed)
-
-
 
 
 @client.command(pass_context=True, name="player",
