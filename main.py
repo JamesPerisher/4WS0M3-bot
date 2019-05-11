@@ -138,14 +138,14 @@ async def ping(ctx):  # ping command
                 name="eight-ball",
                 description="Get a answer from the magic 8 ball",
                 brief="Ask the 8 ball",
-                aliases=["8-ball", "8ball, eight_ball"])
+                aliases=["8ball", "8-ball", "eight_ball"])
 async def eight_ball(ctx):  # eight-ball command
     options = ["Yes", "No", "yes definitely", "it is decidedly so", "signs point to Yes", "it is certain", "without a doubt",
             "most likely", "outlook good", "outlook not so good", "as I see it Yes", "better not tell you now", "cannot predict now",
             "MY REPLY IS NO", "you may rely on it", "REPLY hazy try again", "ask again later", "concentrate and ask again",
             "don't count on it", "very doubtful", "my sources say no"]  # all options
 
-    await ctx.send("The magic 8-ball says %s" %random.choice(options).upper())
+    await ctx.send("The magic 8-ball says %s" %random.choice(options).lower())
 
 
 @client.command(pass_context=True, name="server",
@@ -281,7 +281,7 @@ async def randomfact(ctx):  # fact command
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
     db_interact.start()
-    if db_interact.is_ascii(ctx.messagectx.guild):
+    if db_interact.is_ascii(ctx.guild):
         with open("ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
@@ -317,7 +317,7 @@ async def yoda(ctx):  # yoda command
 
 @client.command(pass_context=True, name="admin-help",
                 description="Get help on admin command", brief="admin commands help",
-                aliases=["help-admin", "admin"])
+                aliases=["help-admin", "adminhelp","admin"])
 async def admin_help(ctx):  # admin-help command
     await ctx.send(admin_help_text)
 
@@ -337,7 +337,7 @@ async def chat(ctx, channel):  # chat command
                 channel.id = 0
                 channel.name = "None"
         db_interact.start()
-        db_interact.update_channel(ctx.messagectx.guild, channel.id)
+        db_interact.update_channel(ctx.guild, channel.id)
         db_interact.close()
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
 
@@ -350,10 +350,10 @@ async def ascii(ctx, config):  # ascii command
     db_interact.start()
     if config.lower().strip() == "true":
         await ctx.send("```Updated show ascii to True```")
-        db_interact.update_ascii(ctx.messagectx.guild, 1)
+        db_interact.update_ascii(ctx.guild, 1)
     if config.lower().strip() == "false":
         await ctx.send("```Updated show ascii to False```")
-        db_interact.update_ascii(ctx.messagectx.guild, 0)
+        db_interact.update_ascii(ctx.guild, 0)
     db_interact.close()
 
 
