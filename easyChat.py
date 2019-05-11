@@ -24,19 +24,14 @@ async def on_message(message):
         return
     if message.channel.id == 563532653673054209:
         if message.author.id == 508296387985801226:
-<<<<<<< HEAD
             user = None
-=======
             raw_text = message.embeds[0].description
-            #print(raw_text)
->>>>>>> d4f1a2ccabc160a5bd9958fe8e0924a6de3dbbf1
-
             if raw_text[0][0] != "*": # checks to see if it is a death message
-                embed = discord.Embed(title=raw_text, color=bc0000)
+                embed = discord.Embed(title=raw_text, color=0xff7f00)
             else:
                 split_text = raw_text.split(">**")
                 #USERNAME
-<<<<<<< HEAD
+
                 user = split_text[0]
                 user = user.replace("**<", "").replace("\\_", "")
 
@@ -50,7 +45,7 @@ async def on_message(message):
 
                 message = ("**<%s>** %s" %(user, text))
 
-            message = message.replace("zozzle.gg", "discord.gg").replace("**", "")
+                message = message.replace("zozzle.gg", "discord.gg").replace("**", "")
 
             print(message)
 
@@ -68,7 +63,7 @@ async def on_message(message):
 
                 if user in ["JKookaburra", "JKookaburra_1", "JKookaburra_2", "JKookaburra_3", "JKookaburra_4", "JKookaburra_5", "JKookaburra_6"]:
                     text=discord.Embed(title=message, color=0x1f8b4c)
-=======
+
                 user = split_text[0].replace("**<", "")
                 #TEXT
                 text = ">**".join(split_text[1::])[1::]
@@ -87,7 +82,6 @@ async def on_message(message):
 
                 if user in ["JKookaburra", "JKookaburra_1", "JKookaburra_2", "JKookaburra_3", "JKookaburra_4", "JKookaburra_5", "JKookaburra_6"]:
                     embed = discord.Embed(title=message, color=0x1f8b4c)
->>>>>>> d4f1a2ccabc160a5bd9958fe8e0924a6de3dbbf1
 
 
             if not message == "":
