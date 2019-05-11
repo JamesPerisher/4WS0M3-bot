@@ -28,7 +28,7 @@ async def on_message(message):
             #print(raw_text)
 
             if raw_text[0][0] != "*": # checks to see if it is a death message
-                embed = discord.Embed(title=raw_text, color=0xe56706)
+                embed = discord.Embed(title=raw_text, color=bc0000)
             else:
                 split_text = raw_text.split(">**")
                 #USERNAME

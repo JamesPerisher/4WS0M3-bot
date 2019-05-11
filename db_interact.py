@@ -8,7 +8,7 @@ def start():
 
 def create_servers_table():
     global connection, crsr
-    sql_command = """CREATE TABLE servers (
+    sql_command = """CREATE TABLE IF NOT EXISTS servers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id VARCHAR(20),
     chat_channel VARCHAR(20),

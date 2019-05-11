@@ -84,14 +84,14 @@ async def on_message(message):  # on message event
     if message.author.id == client.user.id: # ignore messaged from myself
         return
 
-    if message.channel.id == "565114743975575572": # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
+    if message.channel.id == 565114743975575572: # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
         db_interact.start()
         for i in db_interact.all_chat():
-            await client.send_message(client.get_channel(i), embed=discord.Embed(**message.embeds[0]))
+            await client.get_channel(int(i)).send(embed=message.embeds[0])
 
         db_interact.close()
 
-    if message.author.id == "391109829755797514": # admin-my_commands commands - ignore these
+    if message.author.id == 391109829755797514: # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
             await new_pres()
 
@@ -325,11 +325,13 @@ async def chat(ctx, channel):  # chat command
         channel = client.get_channel(int(str(channel).replace("<", "").replace(">", "").replace("#", "")))
     except Exception as e:
         print(e)
+    print(str(channel).strip().lower())
     if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
         channel = lambda : print(end="")
         channel.id = 0
         channel.name = "None"
-        print("test1123")
+
+    print(channel.id)
 
     db_interact.start()
     db_interact.update_channel(ctx.message.guild, channel.id)
