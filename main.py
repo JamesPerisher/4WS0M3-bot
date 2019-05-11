@@ -324,7 +324,7 @@ async def admin_help(ctx):  # admin-help command
 @client.command(pass_context=True, name="chat",
                 description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
 async def chat(ctx, channel):  # chat command
-    if not ctx.message.author.server_permissions.administrator:
+    if not ctx.message.author.server_permissions.administrator: # if not message.author has admin
         await ctx.send("```You do not have permission to do that!```")
         return
     try:
@@ -344,7 +344,7 @@ async def chat(ctx, channel):  # chat command
 @client.command(pass_context=True, name="ascii",
                 description="Configure ascii art allowence with [True/False]", brief="Allow ascii art")
 async def ascii(ctx, config):  # ascii command
-    if not ctx.message.author.server_permissions.administrator:
+    if not ctx.message.author.server_permissions.administrator: # if not message.author has admin
         await ctx.send("```You do not have permission to do that!```")
         return
     db_interact.start()

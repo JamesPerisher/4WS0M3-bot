@@ -1,5 +1,4 @@
 {
-  "test": "a",
   "bot": {
     "prefix": "?",
     "testing": "False",
