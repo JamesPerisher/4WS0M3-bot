@@ -1,5 +1,5 @@
 import discord
-from discord.ext.commands import Bot
+from discord.ext.commands import Bot,has_permissions,CheckFailure
 from discord.ext import commands
 import asyncio
 
@@ -11,10 +11,12 @@ import urllib.request as request
 import db_interact
 import json
 
+global last
+last = None
 
 configuration = json.load(open("config.json"))
 
-testing = bool(configuration["bot"]["testing"])
+testing = configuration["bot"]["testing"].lower == "true"   # database database intereaction and more will not work
 print(time.time())
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
@@ -67,6 +69,7 @@ You can also type ?help category for more info on a category.
 async def on_ready():  # bot start event
     if not testing:
         client.loop.create_task(presence_task())
+        db_interact.start()
     print("Bot Online")
     print("Name : %s" %client.user.name)
     print("ID: %s" %client.user.id)
@@ -74,6 +77,7 @@ async def on_ready():  # bot start event
 
 @client.event
 async def on_message(message):  # on message event
+    global last
     message.content = message.content.lower().strip()
     try:  # remove this and try to make it work
         #TODO why do we strip again?   >   didnt work without strip
@@ -91,16 +95,18 @@ async def on_message(message):  # on message event
         return
 
     if message.channel.id == configuration["bot"]["forward_from"]: # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
-        db_interact.start()
-        for i in db_interact.all_chat():
-            await client.send_message(client.get_channel(i), embed=discord.Embed(**message.embeds[0]))
+        if not testing:
+            for i in db_interact.all_chat():
+                await client.get_channel(int(i)).send(embed=message.embeds[0])
 
-        db_interact.close()
+            db_interact.commit()
 
     if message.author.id == configuration["bot"]["owner"]: # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
             await new_pres()
+            return
 
+    last = message
 
     await client.process_commands(message)  # process commands
 
@@ -229,6 +235,9 @@ async def get_info(ctx, user=None):  # info command
                 aliases=["calc", "cal"])
 async def math(ctx, *args):  # math command
     raw_equation = " ".join(args)
+    if len(raw_equation) > 100:
+        await ctx.send("Equation too long")
+        return
     equation = raw_equation.replace(" ", "").replace("^", "**").replace("e", "*10**").replace("pi", "π").replace("π", "3.14159265358979323846")
     equation = list(equation)
     for i in range(len(equation)):
@@ -242,7 +251,7 @@ async def math(ctx, *args):  # math command
         out = "Invalid equation"
     if len(args) == 0:
         out = "No equation"
-    await ctx.send("%s ≈ %s" %(raw_equation, out))
+    await ctx.send("%s = `%s` ≈ `%s`" %(raw_equation, equation, out))
 
 
 @client.command(pass_context=True, name="genocide",
@@ -280,14 +289,13 @@ async def randomfact(ctx):  # fact command
                 description="Sends a random food item", brief="In case you get hungry",
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
-    db_interact.start()
     if db_interact.is_ascii(ctx.guild):
         with open("ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
     else:
         await ctx.send("```Ascii art is disabled on this server idk why tho.```")
-    db_interact.close()
+    db_interact.commit()
 
 @client.command(pass_context=True, name="penis",
                 description="Get your penis size", brief="Display Penis")
@@ -323,39 +331,39 @@ async def admin_help(ctx):  # admin-help command
 
 @client.command(pass_context=True, name="chat",
                 description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
+@has_permissions(administrator=True)
 async def chat(ctx, channel):  # chat command
-    if not ctx.message.author.server_permissions.administrator: # if not message.author has admin
-        await ctx.send("```You do not have permission to do that!```")
-        return
     try:
-        channel = client.get_channel(str(channel).replace("<", "").replace(">", "").replace("#", ""))
+        channel = client.get_channel(int(str(channel).replace("<", "").replace(">", "").replace("#", "")))
     except Exception as e:
         print(e)
-    else:
-        if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
-                channel = lambda : print(end="")
-                channel.id = 0
-                channel.name = "None"
-        db_interact.start()
-        db_interact.update_channel(ctx.guild, channel.id)
-        db_interact.close()
-        await ctx.send("```Set in-game live chat to: %s```" %channel.name)
+    if str(channel).strip().lower() == "0" or str(channel).strip().lower() == "none":
+            channel = lambda : print(end="")
+            channel.id = 0
+            channel.name = "None"
+    db_interact.update_channel(ctx.guild, channel.id)
+    db_interact.close()
+    db_interact.start()
+    await ctx.send("```Set in-game live chat to: %s```" %channel.name)
+
+@chat.error
+async def chat_error(error, ctx):
+    await last.channel.send("```You do not have permission to do that!```")
 
 @client.command(pass_context=True, name="ascii",
                 description="Configure ascii art allowence with [True/False]", brief="Allow ascii art")
+@has_permissions(administrator=True)
 async def ascii(ctx, config):  # ascii command
-    if not ctx.message.author.server_permissions.administrator: # if not message.author has admin
-        await ctx.send("```You do not have permission to do that!```")
-        return
-    db_interact.start()
     if config.lower().strip() == "true":
         await ctx.send("```Updated show ascii to True```")
         db_interact.update_ascii(ctx.guild, 1)
     if config.lower().strip() == "false":
         await ctx.send("```Updated show ascii to False```")
         db_interact.update_ascii(ctx.guild, 0)
-    db_interact.close()
-
+    db_interact.commit()
+@ascii.error
+async def ascii_error(error, ctx):
+    await last.channel.send("```You do not have permission to do that!```")
 
 @client.command(pass_context=True, name="about",
                 description="Get details of my creator", brief="My creator")
@@ -407,5 +415,12 @@ async def player_info(ctx, username=None):  # player-info command
 
 
 
-
-client.run(sys.argv[1])  # start client
+try:
+    client.run(sys.argv[1])  # start client
+except Exception as e:
+    print("Fatal error forcing the entire bot to die")
+    try:
+        db_interact.close()
+    except:
+        print("Tried to save database when bot died and failed")
+    raise e

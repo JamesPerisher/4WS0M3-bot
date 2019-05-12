@@ -27,8 +27,15 @@ def ifRecord(server_id):
 
 def close():
     global connection, crsr
-    connection.commit()
+    try:
+        connection.commit()
+    except:
+        pass
     connection.close()
+
+def commit():
+    global connection, crsr
+    connection.commit()
 
 def update_channel(server, val):
     global connection, crsr

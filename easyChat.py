@@ -3,7 +3,9 @@ from discord.ext.commands import Bot
 from discord.ext import commands
 import asyncio
 import sys
+import time
 
+print(time.time())
 print("Version: %s"%discord.__version__)
 bot_prefix = "?"
 client = commands.Bot(command_prefix=bot_prefix)
@@ -47,8 +49,6 @@ async def on_message(message):
 
                 message = message.replace("zozzle.gg", "discord.gg").replace("**", "")
 
-            print(message)
-
 
             text=discord.Embed(title=message, color=0x004672)
             try:
@@ -71,7 +71,7 @@ async def on_message(message):
                 message = ("**%s** %s" %(user, text))
 
                 message = message.replace("zozzle.gg", "discord.gg")
-                print(message)
+
                 if text[0] == ">":
                     embed = discord.Embed(title=message, color=0x009e0a)
                 else:
@@ -85,6 +85,7 @@ async def on_message(message):
 
 
             if not message == "":
+                print(embed.title)
                 await client.get_channel(565114743975575572).send(embed=embed)
 
 client.run(sys.argv[1], bot=False)
