@@ -10,6 +10,7 @@ import sys
 import urllib.request as request
 import db_interact
 import json
+from math import *
 
 global last
 last = None
@@ -96,10 +97,11 @@ async def on_message(message):  # on message event
 
     if message.channel.id == configuration["bot"]["forward_from"]: # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
         if not testing:
-            for i in db_interact.all_chat():
-                await client.get_channel(int(i)).send(embed=message.embeds[0])
-
-            db_interact.commit()
+            try:
+                for i in db_interact.all_chat():
+                    await client.get_channel(int(i)).send(embed=message.embeds[0])
+            except:
+                return
 
     if message.author.id == configuration["bot"]["owner"]: # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
@@ -235,24 +237,19 @@ async def get_info(ctx, user=None):  # info command
                 aliases=["calc", "cal"])
 async def math(ctx, *args):  # math command
     raw_equation = " ".join(args)
-    if len(raw_equation) > 100:
-        await ctx.send("Equation too long")
-        return
-    equation = raw_equation.replace(" ", "").replace("^", "**").replace("e", "*10**").replace("pi", "π").replace("π", "3.14159265358979323846")
-    equation = list(equation)
-    for i in range(len(equation)):
-        letter = equation[i]
-        if letter not in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '+', '/', '*', '%', '.', '(', ')']:
-            equation[i] = "$"
-    equation = "".join(equation).replace("$", "")
-    try:
-        out = eval(equation)
-    except:
-        out = "Invalid equation"
-    if len(args) == 0:
-        out = "No equation"
-    await ctx.send("%s = `%s` ≈ `%s`" %(raw_equation, equation, out))
 
+    safe_list = ['acos', 'asin', 'atan', 'atan2', 'ceil', 'cos', 'cosh', 'degrees', 'e', 'exp', 'fabs', 'floor', 'fmod', 'frexp', 'hypot', 'ldexp', 'log','log10', 'modf', 'pi', 'pow', 'radians', 'sin', 'sinh', 'sqrt', 'tan', 'tanh', 'abs'] # all safe functions
+    safe_dict = dict([ (k, locals().get(k, eval(k))) for k in safe_list ])
+
+    # safe_dict['abs'] = abs  # manualy add another item/value
+    safe_dict['π'] = pi
+
+    try:
+        out = eval(raw_equation,{"__builtins__":None},safe_dict)
+    except Exception as e:
+        await ctx.send("Invalid equation")
+    else:
+        await ctx.send("`%s` = `%s`" %(raw_equation, out))
 
 @client.command(pass_context=True, name="genocide",
                 description="The great feared snappening", brief="Whatch the snappening",
