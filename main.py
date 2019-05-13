@@ -376,6 +376,7 @@ async def about(ctx):  # about command
     for i in range(len(footer_data["users"])):
         footer_data["text"] = footer_data["text"].replace("<name%s>"%i, client.get_user(footer_data["users"][i]).name)
         footer_data["text"] = footer_data["text"].replace("<id%s>"%i, client.get_user(footer_data["users"][i]).discriminator)
+    embed.set_footer(text=footer_data['text'])
     await ctx.send(embed=embed)
 
 
