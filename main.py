@@ -229,7 +229,7 @@ async def get_info(ctx, user=None):  # info command
         await ctx.send(embed=embed)  # say embed
         return
     except Exception as e:
-        await ctx.send("You fucked up: %s" %e)  # catch errors
+        await ctx.send("Invalid user")  # catch errors
 
 
 @client.command(pass_context=True, name="math",
@@ -297,7 +297,7 @@ async def getfood(ctx):  # foods command
 @client.command(pass_context=True, name="penis",
                 description="Get your penis size", brief="Display Penis")
 async def penis(ctx):  # penis command
-    if ctx.message.author.id == "391109829755797514":
+    if ctx.message.author.id == 391109829755797514:
         await ctx.send("8%sD" %("="*10))
     else:
         await ctx.send("8%sD" %("="*random.randint(1, 9)))
