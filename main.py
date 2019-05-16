@@ -48,6 +48,7 @@ Fun:
   eight-ball   Ask the 8-ball
   fact         Weird facts!
   food         In case you get hungry
+  knock        Knock knock
 
 Type ?help command for more info on a command.
 You can also type ?help category for more info on a category.
@@ -233,7 +234,7 @@ async def get_info(ctx, user=None):  # info command
 
 
 @client.command(pass_context=True, name="math",
-                description="calculate maths stuff (you can use pi as π)", brief="do math",
+                description="calculate maths stuff (can use sin, pi, sqrt, ect)", brief="do math",
                 aliases=["calc", "cal"])
 async def math(ctx, *args):  # math command
     raw_equation = " ".join(args)
@@ -281,6 +282,13 @@ async def randomfact(ctx):  # fact command
     with open("facts.txt", "r") as f:
         lines = f.readlines()
         await ctx.send(random.choice(lines))
+
+@client.command(pass_context=True, name="knock",
+                description="Knock knock jokes are great", brief="Knock knock")
+async def randomfact(ctx):  # fact command
+    with open("Knock_knock.txt", "r") as f:
+        lines = f.readlines()
+        await ctx.send(random.choice(lines).replace("|", "\n"))
 
 @client.command(pass_context=True, name="food",
                 description="Sends a random food item", brief="In case you get hungry",
