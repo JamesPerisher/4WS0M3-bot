@@ -1,4 +1,15 @@
 # files
-/__pycache__
+
 tokens*.bat
-servers.db
+*servers.db
+*Minecraft_Alts_100.txt
+mc_que*
+fetch_que.py
+
+
+# logs/regenerated
+*__pycache__*
+*/log.txt
+*/SessionCache.ini
+*/alts.txt
+*/lang*

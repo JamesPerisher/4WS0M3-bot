@@ -8,9 +8,10 @@ import time, pytz
 from datetime import datetime,timedelta
 import sys
 import urllib.request as request
-import db_interact
 import json
 from math import *
+
+import db_interact
 
 global last
 last = None
@@ -141,6 +142,14 @@ async def ping(ctx):  # ping command
 
     await ctx.send('Pong! %sms' %reponse_time)
 
+
+@client.command(pass_context=True,
+                name="que",
+                description="Get queue from 2b2t.org",
+                brief="server que")
+async def queue(ctx):  # ping command
+    que = "coming soon"
+    await ctx.send("2b2t que is %s"%que)
 
 
 @client.command(pass_context=True,
