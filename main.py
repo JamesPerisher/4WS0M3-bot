@@ -15,7 +15,7 @@ from math import *
 global last
 last = None
 
-configuration = json.load(open("config.json"))
+configuration = json.load(open("data/config.json"))
 
 testing = configuration["bot"]["testing"].lower == "true"   # database database intereaction and more will not work
 print(time.time())
@@ -279,14 +279,14 @@ async def randomint(ctx, min=0, max=100):  # random-int command
                 description="Sends a random fun fact", brief="Weird facts!",
                 aliases=["facts"])
 async def randomfact(ctx):  # fact command
-    with open("facts.txt", "r") as f:
+    with open("data/facts.txt", "r") as f:
         lines = f.readlines()
         await ctx.send(random.choice(lines))
 
 @client.command(pass_context=True, name="knock",
                 description="Knock knock jokes are great", brief="Knock knock")
 async def randomfact(ctx):  # fact command
-    with open("Knock_knock.txt", "r") as f:
+    with open("data/Knock_knock.txt", "r") as f:
         lines = f.readlines()
         await ctx.send(random.choice(lines).replace("|", "\n"))
 
@@ -295,7 +295,7 @@ async def randomfact(ctx):  # fact command
                 aliases=["foods"])
 async def getfood(ctx):  # foods command
     if db_interact.is_ascii(ctx.guild):
-        with open("ascii_art.txt", "r") as f:
+        with open("data/ascii_art.txt", "r") as f:
             lines = f.readlines()
             await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
     else:

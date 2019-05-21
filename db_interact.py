@@ -3,7 +3,7 @@ import sqlite3
 
 def start():
     global connection, crsr
-    connection = sqlite3.connect("servers.db")
+    connection = sqlite3.connect("data/servers.db")
     crsr = connection.cursor()
 
 def create_servers_table():
