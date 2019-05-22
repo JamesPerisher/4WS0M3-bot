@@ -14,5 +14,8 @@
       "text": "PM @<name0>#<id0> or @<name1>#<id1> for info/inquiries/bug reports",
       "users": [391109829755797514, 391340428315852801]
     }
+  },
+  "queue": {
+    "que_update": 600
   }
 }

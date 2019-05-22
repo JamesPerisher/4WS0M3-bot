@@ -2,14 +2,15 @@
 
 tokens*.bat
 *servers.db
+*queue.db
 *Minecraft_Alts_100.txt
-mc_que*
 fetch_que.py
 
 
-# logs/regenerated
+# logs/regenerated/cache
 *__pycache__*
 */log.txt
 */SessionCache.ini
 */alts.txt
 */lang*
+data/que-graphs/*

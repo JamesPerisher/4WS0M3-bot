@@ -12,12 +12,15 @@ import json
 from math import *
 
 import db_interact
+import mc_queue
 
-global last
+global last, run
 last = None
+run = False
 
 configuration = json.load(open("data/config.json"))
 
+mc_queue.que_update = configuration["queue"]["que_update"]
 testing = configuration["bot"]["testing"].lower == "true"   # database database intereaction and more will not work
 print(time.time())
 print("Version: %s"%discord.__version__)
@@ -70,13 +73,17 @@ You can also type ?help category for more info on a category.
 
 @client.event
 async def on_ready():  # bot start event
-    if not testing:
-        client.loop.create_task(presence_task())
-        db_interact.start()
-    print("Bot Online")
-    print("Name : %s" %client.user.name)
-    print("ID: %s" %client.user.id)
-    print("==================================================")
+    global run
+    if not run:
+        if not testing:
+            client.loop.create_task(presence_task())
+            client.loop.create_task(queue_task())
+            db_interact.start()
+        print("Bot Online")
+        print("Name : %s" %client.user.name)
+        print("ID: %s" %client.user.id)
+        print("==================================================")
+        run = True
 
 @client.event
 async def on_message(message):  # on message event
@@ -128,6 +135,16 @@ async def presence_task(): # presence task
         await asyncio.sleep(random.randint(5, 5*60))  # changes presence every 5seconds to 5mins
 
 
+async def push_que(): # push current que to file
+    mc_queue.start()
+    mc_queue.add(*mc_queue.get_queue())
+    mc_queue.close()
+
+async def queue_task(): # presence task
+    while True:
+        await push_que()
+        await asyncio.sleep(configuration["queue"]["que_update"])
+
 #===========================COMMANDS===========================
 
 
@@ -174,7 +191,7 @@ async def server_info(ctx, server=None):  # server-info command
             await ctx.send("```Gets status of a Minecraft server\n\n?[server|server-info|info-server] <server>```")
             return
         r = request.urlopen('https://mcapi.us/server/status?ip=%s' %server)
-        a = eval(r.read().decode().replace(":false,", ":False,").replace(":true,", ":True,"))
+        a = json.loads(r.read().decode())
 
         if a["status"] == "error":
             await ctx.send("```error resolving server %s```" %server)
@@ -407,9 +424,9 @@ async def player_info(ctx, username=None):  # player-info command
         return
     try:
         r = request.urlopen('https://api.mojang.com/users/profiles/minecraft/%s' %username)
-        a = eval(r.read().decode().replace(":false,", ":False,").replace(":true,", ":True,"))
+        a = json.loads(r.read().decode())
         r = request.urlopen('https://api.mojang.com/user/profiles/%s/names' %a["id"])
-        b = eval(r.read().decode().replace(":false,", ":False,").replace(":true,", ":True,"))
+        b = json.loads(r.read().decode())
         request.urlopen("https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
         request.urlopen("https://crafatar.com/renders/body/%s?size=4&default=MHF_Steve&overlay"%a["id"])
         names = ""
