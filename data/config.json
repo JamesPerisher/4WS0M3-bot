@@ -1,7 +1,7 @@
 {
   "bot": {
     "prefix": "?",
-    "testing": "False",
+    "testing": "True",
     "owner": 391109829755797514,
     "forward_from": 565114743975575572,
     "bot_colour": "7e0000"

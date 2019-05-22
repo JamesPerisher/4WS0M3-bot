@@ -34,6 +34,13 @@ def get24():
 
     return crsr.fetchall()
 
+def get_last():
+    global connection, crsr
+    sql_command = "SELECT * FROM que_history ORDER BY id desc LIMIT 1;"
+    crsr.execute(sql_command)
+
+    return crsr.fetchall()
+
 
 def close():
     global connection, crsr

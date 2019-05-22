@@ -164,9 +164,11 @@ async def ping(ctx):  # ping command
                 name="que",
                 description="Get queue from 2b2t.org",
                 brief="server que")
-async def queue(ctx):  # ping command
-    que = "coming soon"
-    await ctx.send("2b2t que is %s"%que)
+async def que(ctx):  # ping command
+    mc_queue.start()
+    q = mc_queue.get_last()
+    mc_queue.close()
+    await ctx.send("2b2t has a queue of %s of %s people online **note:** try queue command" %(q[0][1], q[0][2]))
 
 
 @client.command(pass_context=True,
