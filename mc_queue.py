@@ -77,7 +77,7 @@ def get_queue():
     try:
         int(s["players"]["now"])
     except:
-        s["players"]["now"] = -3
+        s["players"]["now"] = 0
 
     out =  (q["que"], s["players"]["now"])
     return out
@@ -95,30 +95,46 @@ def que24():
 
     data = get24()
     data_len = len(data)
-    
+
     for i in range(data_len):
         x.append(-(i * (60*60/que_update)))
-        y0.append(data[i][1])
-        y1.append(data[i][2])
-        if data[i][1] < 0:
-            plt.axvline(x=-(i * (60*60/que_update)), color="#ff00ff")
-        if data[i][2] < 0:
-            plt.axvline(x=-(i * (60*60/que_update)), color="#ff00ff")
+        y0.append(data[i][1]+0.1)
+        y1.append(data[i][2]+0.1)
+        if data[i][1] < 0: # bot error
+            plt.axvline(x=-(i * (60*60/que_update)), linewidth=0.5, color="#ff00ff")
+            y0[-1] = 10000
+        if data[i][2] < 0: # server offline
+            plt.axvline(x=-(i * (60*60/que_update)), linewidth=0.5, color="#ff00ff")
+            y1[-1] = 0
 
-    plt.axvline(x=0, ymin=0, ymax=0, color="#ff00ff", label="error / offline")
+    plt.axvline(x=0, ymin=0, ymax=0, color="#ff00ff", linewidth=0.5, label="error / offline")
     y0 = np.array(y0)
     y1 = np.array(y1)
 
     y2 = y1 - y0
+    y2[y2 < -10.0] = np.nan
     y3 = y0 / y1 * np.average(y1)
+    y3[y3 > 2000] = np.nan
+    y1[y1 == 0.1] = np.nan
+
     plt.title("Last 24 hours of 2b2t queue")
     plt.xlabel("Minutes after current time")
     plt.ylabel("Number of people")
+
+
+    is_fineite = np.isfinite(y3)
+
+    x =  np.array(x)[is_fineite]
+    y0 = y0[is_fineite]
+    y1 = y1[is_fineite]
+    y2 = y2[is_fineite]
+    y3 = y3[is_fineite]
 
     plt.plot(x, y2, color="#9e0101", label="online queue difference")
     plt.plot(x, y3, color="#591c72", label="queue vs online (relative percent)")
     plt.plot(x, y1, color="#1c2d72", label="online")
     plt.plot(x, y0, color="#2d721c", label="queue")
+
 
     name = 'data/que-graphs/current'
     leg = plt.legend(loc='lower left', framealpha=0.15)
@@ -135,7 +151,7 @@ if __name__ == '__main__':
     start()
     create_queue_all_table() # makes the empty database if it dont exist\
 
-    # que24()
+    que24()
 
     close()
     exit()
