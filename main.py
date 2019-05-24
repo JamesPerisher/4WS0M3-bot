@@ -29,6 +29,7 @@ bot_prefix = configuration["bot"]["prefix"]
 client = commands.Bot(command_prefix=bot_prefix)
 colour = configuration["bot"]["bot_colour"]
 
+
 help = """```
 Information:
   help         Shows this message.
@@ -41,6 +42,8 @@ Information:
 Utilities:
   math         do math
   random       generate random numbers
+  que          server queue
+  queue        server queue graph
   admin-help   admin commands help
 
 Spam:
@@ -136,8 +139,10 @@ async def presence_task(): # presence task
 
 
 async def push_que(): # push current que to file
+    print("Push to mc_queue")
     mc_queue.start()
     mc_queue.add(*mc_queue.get_queue())
+    mc_queue.que24()
     mc_queue.close()
 
 async def queue_task(): # presence task
@@ -163,12 +168,19 @@ async def ping(ctx):  # ping command
 @client.command(pass_context=True,
                 name="que",
                 description="Get queue from 2b2t.org",
-                brief="server que")
+                brief="server queue")
 async def que(ctx):  # ping command
     mc_queue.start()
     q = mc_queue.get_last()
     mc_queue.close()
-    await ctx.send("2b2t has a queue of %s of %s people online **note:** try queue command" %(q[0][1], q[0][2]))
+    await ctx.send("2b2t has a queue of **%s** of **%s** people online **note:** try queue command" %(q[0][1], q[0][2]))
+
+@client.command(pass_context=True,
+                name="queue",
+                description="Graphs queue from 2b2t.org over time",
+                brief="server queue graph")
+async def queue(ctx):  # ping command
+    await ctx.send(file=discord.File("data/que-graphs/current.png", filename="data/que-graphs/current.png", spoiler=False))
 
 
 @client.command(pass_context=True,
@@ -458,3 +470,5 @@ except Exception as e:
     except:
         print("Tried to save database when bot died and failed")
     raise e
+
+input("> ")

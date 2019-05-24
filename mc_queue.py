@@ -3,6 +3,7 @@ import json
 import sqlite3
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 
 que_update = 10*60
 
@@ -68,36 +69,73 @@ def get_queue():
     if s["status"] == "error":
         s = {"players":{"now":-1}}
 
+    try:
+        int(q["que"])
+    except:
+        q["que"] = -2
+
+    try:
+        int(s["players"]["now"])
+    except:
+        s["players"]["now"] = -3
+
     out =  (q["que"], s["players"]["now"])
     return out
 
 #===========================DISPLAY===========================
 
 def que24():
+    plt.style.use('dark_background')
+
     x  = []
-    y  = []
+    y0 = []
     y1 = []
+    y2 = np.array([])
+    y3 = np.array([])
+
     data = get24()
-    print(len(data))
-    for i in range(len(data)):
-        x.append(i)
-        y.append(data[i][1])
+    data_len = len(data)
+    
+    for i in range(data_len):
+        x.append(-(i * (60*60/que_update)))
+        y0.append(data[i][1])
         y1.append(data[i][2])
-    plt.title('last 24 hours of 2b2t queue')
+        if data[i][1] < 0:
+            plt.axvline(x=-(i * (60*60/que_update)), color="#ff00ff")
+        if data[i][2] < 0:
+            plt.axvline(x=-(i * (60*60/que_update)), color="#ff00ff")
 
-    plt.plot(x, y, label="queue")
-    plt.plot(x, y1, label="online")
+    plt.axvline(x=0, ymin=0, ymax=0, color="#ff00ff", label="error / offline")
+    y0 = np.array(y0)
+    y1 = np.array(y1)
 
-    name = 'data/que-graphs/%s-%s.png' %("que24", str(time.time()).split(".")[0])
-    plt.legend()
+    y2 = y1 - y0
+    y3 = y0 / y1 * np.average(y1)
+    plt.title("Last 24 hours of 2b2t queue")
+    plt.xlabel("Minutes after current time")
+    plt.ylabel("Number of people")
+
+    plt.plot(x, y2, color="#9e0101", label="online queue difference")
+    plt.plot(x, y3, color="#591c72", label="queue vs online (relative percent)")
+    plt.plot(x, y1, color="#1c2d72", label="online")
+    plt.plot(x, y0, color="#2d721c", label="queue")
+
+    name = 'data/que-graphs/current'
+    leg = plt.legend(loc='lower left', framealpha=0.15)
+    leg.get_frame().set_linewidth(0.0)
 
     plt.savefig(name)
+    plt.clf()
     return name
+
+
 
 
 if __name__ == '__main__':
     start()
-    create_queue_all_table() # makes the empty database if it dont exist
+    create_queue_all_table() # makes the empty database if it dont exist\
+
+    # que24()
 
     close()
     exit()
