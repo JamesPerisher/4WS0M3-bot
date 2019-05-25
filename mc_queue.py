@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 que_update = 10*60
+np.warnings.filterwarnings('ignore')
 
 #===========================DATABASE===========================
 

@@ -173,7 +173,14 @@ async def que(ctx):  # ping command
     mc_queue.start()
     q = mc_queue.get_last()
     mc_queue.close()
-    await ctx.send("2b2t has a queue of **%s** of **%s** people online **note:** try queue command" %(q[0][1], q[0][2]))
+    if q[0][1] < 0:
+        await ctx.send("Either 2b2t is down or there was an issue with my bot")
+        return
+    embed=discord.Embed(color=eval("0x%s"%colour))
+    embed.add_field(name="Queue", value=q[0][1], inline=True)
+    embed.add_field(name="Online", value=q[0][2], inline=True)
+    embed.set_footer(text="NOTE: try the queue command")
+    await ctx.send(embed=embed)
 
 @client.command(pass_context=True,
                 name="queue",
@@ -304,6 +311,10 @@ async def genocide(ctx):  # genocide command
                 description="Generate a number between to numbers", brief="Random number",
                 aliases=["rand"])
 async def randomint(ctx, min=0, max=100):  # random-int command
+    try:
+        int(min) + int(max)
+    except:
+        await ctx.send("Numbers entered must be integeres(whole numbers)")
     if max < min:
         a = max
         max = min
@@ -312,7 +323,7 @@ async def randomint(ctx, min=0, max=100):  # random-int command
     try:
         await ctx.send(str(random.randint(int(min), int(max))))
     except Exception as e:
-        await ctx.send("You fucked up: %s" %e)  # catch errors
+        await ctx.send("You found a bug! (maybe)")  # catch errors
 
 
 @client.command(pass_context=True, name="fact",
