@@ -33,7 +33,7 @@ colour = configuration["bot"]["bot_colour"]
 help = """```
 Information:
   help         Shows this message.
-  ping         Get a test reponse
+  ping         Get a test response
   info         Get info on user
   server       Minecrft Server Information
   player       Minecrft Player Information
@@ -155,8 +155,8 @@ async def queue_task(): # presence task
 
 @client.command(pass_context=True,
                 name="ping",
-                description="Gets a test reponse from the bot",
-                brief="Get a test reponse")
+                description="Gets a test response from the bot",
+                brief="Get a test response")
 async def ping(ctx):  # ping command
     current_time = time.time()
     send_time = time.mktime(ctx.message.created_at.timetuple()) # sent time
@@ -338,7 +338,7 @@ async def randomfact(ctx):  # fact command
                 description="Knock knock jokes are great", brief="Knock knock")
 async def randomfact(ctx):  # fact command
     with open("data/Knock_knock.txt", "r") as f:
-        lines = f.readlines()
+        lines = "Knock knock.|Who's there?|" + f.readlines()
         await ctx.send(random.choice(lines).replace("|", "\n"))
 
 @client.command(pass_context=True, name="food",
@@ -407,7 +407,7 @@ async def chat_error(error, ctx):
     await last.channel.send("```You do not have permission to do that!```")
 
 @client.command(pass_context=True, name="ascii",
-                description="Configure ascii art allowence with [True/False]", brief="Allow ascii art")
+                description="Configure ascii art allowance with [True/False]", brief="Allow ascii art")
 @has_permissions(administrator=True)
 async def ascii(ctx, config):  # ascii command
     if config.lower().strip() == "true":

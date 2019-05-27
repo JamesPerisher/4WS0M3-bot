@@ -50,7 +50,7 @@ async def on_message(message):
                 message = message.replace("zozzle.gg", "discord.gg").replace("**", "")
 
 
-            text=discord.Embed(title=message, color=0x004672)
+            text=discord.Embed(title=message, color=0x004672)   # at this point 'text' is a message
             try:
                 if split_text[1][1] == ">":
                     text=discord.Embed(title=message, color=0x009e0a)
