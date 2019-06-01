@@ -88,4 +88,5 @@ async def on_message(message):
                 print(embed.title)
                 await client.get_channel(565114743975575572).send(embed=embed)
 
+
 client.run(sys.argv[1], bot=False)

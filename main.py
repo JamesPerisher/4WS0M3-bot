@@ -338,8 +338,8 @@ async def randomfact(ctx):  # fact command
                 description="Knock knock jokes are great", brief="Knock knock")
 async def randomfact(ctx):  # fact command
     with open("data/Knock_knock.txt", "r") as f:
-        lines = "Knock knock.|Who's there?|" + f.readlines()
-        await ctx.send(random.choice(lines).replace("|", "\n"))
+        lines = f.readlines()
+        await ctx.send(("Knock knock.|Who's there?|" + str(random.choice(lines))).replace("|", "\n"))
 
 @client.command(pass_context=True, name="food",
                 description="Sends a random food item", brief="In case you get hungry",
@@ -429,7 +429,7 @@ async def about(ctx):  # about command
     embed.add_field(name="Created by:", value="%s#%s" %((client.get_user(configuration["bot"]["owner"]).name), (client.get_user(configuration["bot"]["owner"])).discriminator), inline=False)
     embed.add_field(name="Created in:", value=configuration["credits"]["created_in"], inline=False)
     embed.add_field(name="Runs in:", value=configuration["credits"]["runs_in"], inline=False)
-    embed.add_field(name="Hosted by:", value="%s#%s" %((client.get_user(configuration["credits"]["host"])).name, (client.get_user(configuration["credits"]["host"])).discriminator), inline=False)
+    embed.add_field(name="Hosted by:", value=configuration["credits"]["host"], inline=False)
 
     footer_data = configuration["credits"]["footer"]
     for i in range(len(footer_data["users"])):

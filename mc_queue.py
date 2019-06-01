@@ -60,12 +60,18 @@ def commit():
 #===========================GET_QUEUE===========================
 
 def get_queue():
-    q = {'que': "-1"}
-    r = request.urlopen("https://pumpkin-que.glitch.me/botque")
-    q = json.loads(r.read().decode())
+    q = {'que': -1}
+    r = request.urlopen("https://2b2t-queue-api.glitch.me/botque?pass=usagepass@176")
+    try:
+        q = json.loads(r.read().decode())
+    except:
+        q = {'que': -1}
 
     r = request.urlopen('https://mcapi.us/server/status?ip=2b2t.org')
-    s = json.loads(r.read().decode())
+    try:
+        s = json.loads(r.read().decode())
+    except:
+        s = {"status":"error"}
 
     if s["status"] == "error":
         s = {"players":{"now":-1}}
