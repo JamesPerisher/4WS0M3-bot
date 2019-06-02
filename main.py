@@ -91,6 +91,9 @@ async def on_ready():  # bot start event
 @client.event
 async def on_message(message):  # on message event
     global last
+    message.content = str(message.content)+str(" ")
+    if message.content[0] != configuration["bot"]["prefix"]:
+        return
     message.content = message.content.lower().strip()
     try:  # remove this and try to make it work
         #TODO why do we strip again?   >   didnt work without strip
@@ -160,7 +163,7 @@ async def queue_task(): # presence task
 async def ping(ctx):  # ping command
     current_time = time.time()
     send_time = time.mktime(ctx.message.created_at.timetuple()) # sent time
-    reponse_time = round((current_time - send_time)/1000, 2) # time between send_time and now
+    reponse_time = round((current_time - send_time), 2) # time between send_time and now
 
     await ctx.send('Pong! %sms' %reponse_time)
 

@@ -1,6 +1,6 @@
 {
   "bot": {
-    "prefix": "?",
+    "prefix": "$",
     "testing": "False",
     "owner": 391109829755797514,
     "forward_from": 565114743975575572,
