@@ -130,7 +130,9 @@ def que24():
 
         try:
             relperc = ((data[i][1]+0.1) / (data[i][2]+0.1)) * maxonline
-            y3.append(np.nan if relperc > maxonline else relperc)
+            relperc = np.nan if relperc > maxonline else relperc
+            relperc = np.nan if relperc < 0 else relperc
+            y3.append(relperc)
         except:
             y3.append(np.nan)
 
