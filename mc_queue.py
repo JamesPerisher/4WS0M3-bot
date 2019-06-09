@@ -61,33 +61,36 @@ def commit():
 
 def get_queue():
     q = {'que': -1}
-    r = request.urlopen("https://2b2t-queue-api.glitch.me/botque?pass=usagepass@176")
+    out = ["fatal queue error", "fatal online error"]
     try:
-        q = json.loads(r.read().decode())
-    except:
-        q = {'que': -1}
-
-    r = request.urlopen('https://mcapi.us/server/status?ip=2b2t.org')
-    try:
+        r = request.urlopen('https://mcapi.us/server/status?ip=2b2t.org')
         s = json.loads(r.read().decode())
     except:
-        s = {"status":"error"}
-
-    if s["status"] == "error":
-        s = {"players":{"now":-1}}
+        out[0] = "bot error"
+    else:
+        try:
+            int(s["players"]["now"])
+        except:
+            out[1] = "online error"
+        else:
+            out[1] = int(s["players"]["now"])
 
     try:
-        int(q["que"])
+        r = request.urlopen("https://2b2t-queue-api.glitch.me/botque?pass=usagepass@176")
+        q = json.loads(r.read().decode())
     except:
-        q["que"] = -2
+        out[1] = "offline"
+    else:
+        if s["status"] == "error":
+            s = {"players":{"now":"offline"}}
+        try:
+            int(q["que"])
+        except:
+            q["que"] = "bot error"
+        else:
+            out[0] = int(q["que"])
 
-    try:
-        int(s["players"]["now"])
-    except:
-        s["players"]["now"] = 0
-
-    out =  (q["que"], s["players"]["now"])
-    return out
+    return tuple(out)
 
 #===========================DISPLAY===========================
 
@@ -158,7 +161,7 @@ if __name__ == '__main__':
     start()
     create_queue_all_table() # makes the empty database if it dont exist\
 
-    que24()
+    print(get_queue())
 
     close()
     exit()

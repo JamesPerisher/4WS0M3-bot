@@ -163,7 +163,7 @@ async def queue_task(): # presence task
 async def ping(ctx):  # ping command
     current_time = time.time()
     send_time = time.mktime(ctx.message.created_at.timetuple()) # sent time
-    reponse_time = round((current_time - send_time), 2) # time between send_time and now
+    reponse_time = round((current_time - send_time)*100, 2) # time between send_time and now
 
     await ctx.send('Pong! %sms' %reponse_time)
 
