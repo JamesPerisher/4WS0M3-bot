@@ -4,6 +4,7 @@ import sqlite3
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 
 que_update = 10*60
 np.warnings.filterwarnings('ignore')
@@ -93,75 +94,71 @@ def get_queue():
     return tuple(out)
 
 #===========================DISPLAY===========================
-
 def que24():
     plt.style.use('dark_background')
 
-    x  = []
-    y0 = []
-    y1 = []
-    y2 = np.array([])
-    y3 = np.array([])
+    x  = [] # time
+    y0 = [] # queue
+    y1 = [] # online
+    y2 = [] # online - queue (difference)
+    y3 = [] # queue/online percent
 
     data = get24()
     data_len = len(data)
+    maxonline = max([x[2] for x in data])
 
     for i in range(data_len):
-        x.append(-(i * (60*60/que_update)))
-        y0.append(data[i][1]+0.1)
-        y1.append(data[i][2]+0.1)
-        if data[i][1] < 0: # bot error
-            plt.axvline(x=-(i * (60*60/que_update)), linewidth=0.5, color="#ff00ff")
-            y0[-1] = 10000
-        if data[i][2] < 0: # server offline
-            plt.axvline(x=-(i * (60*60/que_update)), linewidth=0.5, color="#ff00ff")
-            y1[-1] = 0
+        x.append(datetime.datetime.fromtimestamp(data[i][3]))
+        try:
+            y0.append(data[i][1]+0.1)
+            if y0[-1] <= 0:
+                y0[-1] = np.nan
+        except:
+            y0.append(np.nan)
+        try:
+            y1.append(data[i][2]+0.1)
+            if y1[-1] <= 1:
+                y1[-1] = np.nan
+        except:
+            y1.append(np.nan)
+        try:
+            y2.append((data[i][2]+0.1) - (data[i][1]+0.1))
+            if y2[-1] <= 0:
+                y2[-1] = np.nan
+        except:
+            y2.append(np.nan)
 
-    plt.axvline(x=0, ymin=0, ymax=0, color="#ff00ff", linewidth=0.5, label="error / offline")
-    y0 = np.array(y0)
-    y1 = np.array(y1)
-
-    y2 = y1 - y0
-    y2[y2 < -10.0] = np.nan
-    y3 = y0 / y1 * np.average(y1)
-    y3[y3 > 2000] = np.nan
-    y1[y1 == 0.1] = np.nan
+        try:
+            relperc = ((data[i][1]+0.1) / (data[i][2]+0.1)) * maxonline
+            y3.append(np.nan if relperc > maxonline else relperc)
+        except:
+            y3.append(np.nan)
 
     plt.title("Last 24 hours of 2b2t queue")
-    plt.xlabel("Minutes after current time")
+    plt.xlabel("Time")
     plt.ylabel("Number of people")
-
-
-    is_fineite = np.isfinite(y3)
-
-    x =  np.array(x)[is_fineite]
-    y0 = y0[is_fineite]
-    y1 = y1[is_fineite]
-    y2 = y2[is_fineite]
-    y3 = y3[is_fineite]
 
     plt.plot(x, y2, color="#9e0101", label="online queue difference")
     plt.plot(x, y3, color="#591c72", label="queue vs online (relative percent)")
     plt.plot(x, y1, color="#1c2d72", label="online")
     plt.plot(x, y0, color="#2d721c", label="queue")
 
-
     name = 'data/que-graphs/current'
     leg = plt.legend(loc='lower left', framealpha=0.15)
     leg.get_frame().set_linewidth(0.0)
+
+    plt.gcf().autofmt_xdate()
 
     plt.savefig(name)
     plt.clf()
     return name
 
 
-
-
 if __name__ == '__main__':
     start()
     create_queue_all_table() # makes the empty database if it dont exist\
 
-    print(get_queue())
+    que24()
 
     close()
     exit()
