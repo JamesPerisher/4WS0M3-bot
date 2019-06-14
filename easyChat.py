@@ -5,6 +5,9 @@ import asyncio
 import sys
 import time
 
+global isqueue
+isqueue = False
+
 print(time.time())
 print("Version: %s"%discord.__version__)
 bot_prefix = "?"
@@ -22,6 +25,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    global isqueue
     if message.author == client.user:
         return
     if message.channel.id == 563532653673054209:
@@ -30,6 +34,18 @@ async def on_message(message):
             raw_text = message.embeds[0].description
             if raw_text[0][0] != "*": # checks to see if it is a death message
                 embed = discord.Embed(title=raw_text, color=0xff7f00)
+                try:
+                    if raw_text[0:18] == "Position in queue:":
+                        print("Queue: %s"%raw_text)
+                        if not isqueue:
+                            embed = discord.Embed(title="Currently waiting in queue", color=0xff7f00)
+                            isqueue = True
+                        else:
+                            return
+                    else:
+                        isqueue = False
+                except:
+                    print("error ignore queue")
             else:
                 split_text = raw_text.split(">**")
                 #USERNAME

@@ -21,7 +21,7 @@ run = False
 configuration = json.load(open("data/config.json"))
 
 mc_queue.que_update = configuration["queue"]["que_update"]
-testing = configuration["bot"]["testing"].lower == "true"   # database database intereaction and more will not work
+testing = False   # database database intereaction and more will not work faster for me testing
 print(time.time())
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
@@ -91,6 +91,17 @@ async def on_ready():  # bot start event
 @client.event
 async def on_message(message):  # on message event
     global last
+    if message.author.id == client.user.id: # ignore messaged from myself
+        return
+
+    if int(message.channel.id) == int(configuration["bot"]["forward_from"]): # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
+        if not testing:
+            try:
+                for i in db_interact.all_chat():
+                    await client.get_channel(int(i)).send(embed=message.embeds[0])
+            except:
+                pass
+
     message.content = str(message.content)+str(" ")
     if message.content[0] != configuration["bot"]["prefix"]:
         return
@@ -106,17 +117,6 @@ async def on_message(message):  # on message event
             return
     except:
         pass
-
-    if message.author.id == client.user.id: # ignore messaged from myself
-        return
-
-    if message.channel.id == configuration["bot"]["forward_from"]: # message.embeds forwarder (takes game chat from another of my discords and forwards it to the new one) (cos u cant have that code)
-        if not testing:
-            try:
-                for i in db_interact.all_chat():
-                    await client.get_channel(int(i)).send(embed=message.embeds[0])
-            except:
-                return
 
     if message.author.id == configuration["bot"]["owner"]: # admin-my_commands commands - ignore these
         if message.content.startswith("%sNewPresence" %bot_prefix):  # force change of presence
