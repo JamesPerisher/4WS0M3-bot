@@ -142,11 +142,14 @@ async def presence_task(): # presence task
 
 
 async def push_que(): # push current que to file
-    print("Push to mc_queue")
-    mc_queue.start()
-    mc_queue.add(*mc_queue.get_queue())
-    mc_queue.que24()
-    mc_queue.close()
+    try:
+        mc_queue.start()
+        mc_queue.add(*mc_queue.get_queue())
+        mc_queue.que24()
+        mc_queue.close()
+        print("Pushed to mc_queue")
+    except:
+        print("Add to que failed")
 
 async def queue_task(): # presence task
     while True:

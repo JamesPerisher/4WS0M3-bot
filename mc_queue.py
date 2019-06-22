@@ -32,7 +32,9 @@ def add(que, online):
 
 def get24():
     global connection, crsr
-    sql_command = "SELECT * FROM que_history ORDER BY id desc LIMIT %s;" %(24*60*60/que_update)
+    print(int(time.time()-86400), time.time())
+    sql_command = "SELECT * FROM que_history WHERE time > %s" %int(time.time()-86400)
+    #sql_command = "SELECT * FROM que_history ORDER BY id desc LIMIT %s;" %(24*60*60/que_update)
     crsr.execute(sql_command)
 
     return crsr.fetchall()
@@ -105,7 +107,7 @@ def que24():
 
     data = get24()
     data_len = len(data)
-    maxonline = max([x[2] for x in data])
+    maxonline = max([x[2] for x in data if type(x[2])==type(1)])
 
     for i in range(data_len):
         x.append(datetime.datetime.fromtimestamp(data[i][3]))
@@ -159,6 +161,8 @@ def que24():
 if __name__ == '__main__':
     start()
     create_queue_all_table() # makes the empty database if it dont exist\
+
+    #add(*get_queue())
 
     que24()
 
