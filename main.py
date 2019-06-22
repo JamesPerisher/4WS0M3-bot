@@ -184,6 +184,7 @@ async def que(ctx):  # ping command
         return
     embed=discord.Embed(color=eval("0x%s"%colour))
     embed.add_field(name="Queue", value=q[0][1], inline=True)
+    embed.add_field(name="Priority queue", value=q[0][2] - (q[0][1] + 200), inline=True)
     embed.add_field(name="Online", value=q[0][2], inline=True)
     embed.set_footer(text="NOTE: try the queue command")
     await ctx.send(embed=embed)

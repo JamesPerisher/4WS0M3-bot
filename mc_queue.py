@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import datetime
 
-que_update = 10*60
 np.warnings.filterwarnings('ignore')
 
 #===========================DATABASE===========================
@@ -34,7 +33,6 @@ def get24():
     global connection, crsr
     print(int(time.time()-86400), time.time())
     sql_command = "SELECT * FROM que_history WHERE time > %s" %int(time.time()-86400)
-    #sql_command = "SELECT * FROM que_history ORDER BY id desc LIMIT %s;" %(24*60*60/que_update)
     crsr.execute(sql_command)
 
     return crsr.fetchall()
@@ -104,6 +102,7 @@ def que24():
     y1 = [] # online
     y2 = [] # online - queue (difference)
     y3 = [] # queue/online percent
+    y4 = [] # prio queue
 
     data = get24()
     data_len = len(data)
@@ -124,11 +123,18 @@ def que24():
         except:
             y1.append(np.nan)
         try:
-            y2.append((data[i][2]+0.1) - (data[i][1]+0.1))
+            y2.append((data[i][2]+0.1) - (data[i][1]+200+0.1))
             if y2[-1] <= 0:
                 y2[-1] = np.nan
         except:
             y2.append(np.nan)
+
+        try:
+            y4.append((data[i][2]+0.1) - (data[i][1]+0.1))
+            if y4[-1] <= 0:
+                y4[-1] = np.nan
+        except:
+            y4.append(np.nan)
 
         try:
             relperc = ((data[i][1]+0.1) / (data[i][2]+0.1)) * maxonline
@@ -146,6 +152,7 @@ def que24():
     plt.plot(x, y3, color="#591c72", label="queue vs online (relative percent)")
     plt.plot(x, y1, color="#1c2d72", label="online")
     plt.plot(x, y0, color="#2d721c", label="queue")
+    plt.plot(x, y4, color="#1c6c72", label="priority queue")
 
     name = 'data/que-graphs/current'
     leg = plt.legend(loc='lower left', framealpha=0.15)
