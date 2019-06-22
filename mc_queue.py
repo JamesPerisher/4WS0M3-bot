@@ -130,7 +130,7 @@ def que24():
             y2.append(np.nan)
 
         try:
-            y4.append((data[i][2]+0.1) - (data[i][1]+0.1))
+            y4.append((data[i][2]+0.1) - (data[i][1]+200+0.1))
             if y4[-1] <= 0:
                 y4[-1] = np.nan
         except:
