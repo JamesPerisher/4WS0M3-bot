@@ -13,6 +13,7 @@ from math import *
 
 import db_interact
 import mc_queue
+import coins
 
 global last, run
 last = None
@@ -21,7 +22,7 @@ run = False
 configuration = json.load(open("data/config.json"))
 
 mc_queue.que_update = configuration["queue"]["que_update"]
-testing = False   # database database intereaction and more will not work faster for me testing
+testing = False   # database, database intereaction and more will not work faster for me testing
 print(time.time())
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
@@ -476,6 +477,29 @@ async def player_info(ctx, username=None):  # player-info command
         await ctx.send(embed=embed)
     except:
         await ctx.send("```No current player named: %s```" %username)
+
+#===========================COINS===========================
+
+@client.command(pass_context=True, name="balance",
+                description="Gets a users balance if none specified gets yours", brief="your balance",
+                aliases=["bal"])
+async def bal(ctx, user=None):  # player-info command
+    if user == None:
+        coins.start()
+        user = ctx.message.author
+        await ctx.send("<@%s> has a balance of: %s" %(user.id, coins.balance(user.id)))
+        coins.close()
+        return
+    try:
+        coins.start()
+        user = client.get_user(int(user.replace("<@", "").replace(">", "")))
+        await ctx.send("<@%s> has a balance of: %s" %(user.id, coins.balance(user.id)))
+        coins.close()
+        return
+    except ValueError:
+        ctx.send("Invalid user")
+        return
+
 
 
 
