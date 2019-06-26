@@ -1,5 +1,8 @@
 import sqlite3
+import json
 
+
+coin_info  = json.load(open("data/coins.json"))
 
 def start():
     global connection, crsr
@@ -53,6 +56,17 @@ def balance(user_id):
 def add(user_id, amt):
     sql_command = "UPDATE balances SET amount = %s WHERE user_id = %s" %(balance(user_id)+amt, user_id)
     crsr.execute(sql_command)
+    return True
+
+def buy(user_id, amt):
+    if add(user_id, amt):
+        coin_info["coins"]["total"] += amt
+        coin_info["coins"]["paid"] += amt
+
+def create(user_id, amt):
+    if add(user_id, amt):
+        coin_info["coins"]["total"] += amt
+        coin_info["coins"]["created"] += amt
 
 def send(from_user, to_user, amt):
     if amt > 0:
@@ -70,13 +84,20 @@ def send(from_user, to_user, amt):
 if __name__ == '__main__':
     start()
 
-    create_servers_table() # makes the empty database
-    print(balance(15876))
-    add(15876, 25)
+    create(1, 100)
+    buy(3, 50)
+    balance(1)
+    balance(3)
 
-    print(send(15876, 1763, 10))
+    print(coin_info)
 
-    print(balance(1763))
-    print(balance(15876))
+    # create_servers_table() # makes the empty database
+    # print(balance(15876))
+    # add(15876, 25)
+    #
+    # print(send(15876, 1763, 10))
+    #
+    # print(balance(1763))
+    # print(balance(15876))
 
     close()

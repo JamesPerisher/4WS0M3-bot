@@ -52,6 +52,10 @@ Spam:
   Penis        Display Penis
   yodish       Yoda speak Yes, hmmm.
 
+Coins:
+  bal          Your balance
+  send         Send coins
+
 Fun:
   eight-ball   Ask the 8-ball
   fact         Weird facts!
@@ -180,7 +184,7 @@ async def que(ctx):  # ping command
     mc_queue.start()
     q = mc_queue.get_last()
     mc_queue.close()
-    if q[0][1] < 0:
+    if isinstance(q[0][1], str):
         await ctx.send("Either 2b2t is down or there was an issue with my bot")
         return
     embed=discord.Embed(color=eval("0x%s"%colour))
@@ -481,9 +485,9 @@ async def player_info(ctx, username=None):  # player-info command
 #===========================COINS===========================
 
 @client.command(pass_context=True, name="balance",
-                description="Gets a users balance if none specified gets yours", brief="your balance",
+                description="Gets a users balance if none specified gets yours", brief="Your balance",
                 aliases=["bal"])
-async def bal(ctx, user=None):  # player-info command
+async def bal(ctx, user=None):  # get player balance bal
     if user == None:
         coins.start()
         user = ctx.message.author
@@ -497,8 +501,49 @@ async def bal(ctx, user=None):  # player-info command
         coins.close()
         return
     except ValueError:
-        ctx.send("Invalid user")
+        await ctx.send("Invalid user")
         return
+
+@client.command(pass_context=True, name="send",
+                description="Transfers coins to another user", brief="Send coins")
+async def send(ctx, to_user=None, amt=None):  # transfer coins command send
+    if to_user == None or amt == None:
+        await ctx.send("usage %ssend [recipient] [amount]"%bot_prefix)
+        return
+    try:
+        coins.start()
+        user = client.get_user(int(to_user.replace("<@", "").replace(">", "")))
+        send = coins.send(ctx.message.author.id,user.id, int(amt))
+        if send[0]:
+            await ctx.send("Transfer of %s coins was successfull"%amt)
+        else:
+            await ctx.send(send[1])
+        coins.close()
+        return
+    except ValueError:
+        await ctx.send("Invalid value **note:** you can only send full coins")
+        return
+
+
+@client.command(pass_context=True, name="create",
+                description="creates coins for user", brief="create coins")
+async def create(ctx, user=None, amt=None):  # transfer coins command send
+    if ctx.message.author.id in [391109829755797514]:
+        if user == None or amt == None:
+            await ctx.send("usage %screate [user] [amount]"%bot_prefix)
+            return
+        try:
+            coins.start()
+            user = client.get_user(int(user.replace("<@", "").replace(">", "")))
+            coins.create(user.id, int(amt))
+            await ctx.send("Creation of %s coins was successfull"%amt)
+            coins.close()
+            return
+        except ValueError:
+            await ctx.send("Invalid value **note:** you can only send full coins")
+            return
+    else:
+        await ctx.send("You dont have permission to do that!")
 
 
 

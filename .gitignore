@@ -3,6 +3,7 @@
 tokens*.bat
 *servers.db
 *queue.db
+*coins.db
 *Minecraft_Alts_100.txt
 fetch_que.py
 
