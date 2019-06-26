@@ -83,21 +83,5 @@ def send(from_user, to_user, amt):
 
 if __name__ == '__main__':
     start()
-
-    create(1, 100)
-    buy(3, 50)
-    balance(1)
-    balance(3)
-
-    print(coin_info)
-
-    # create_servers_table() # makes the empty database
-    # print(balance(15876))
-    # add(15876, 25)
-    #
-    # print(send(15876, 1763, 10))
-    #
-    # print(balance(1763))
-    # print(balance(15876))
-
-    close()
+    create_servers_table() # makes the empty database
+    lose()
