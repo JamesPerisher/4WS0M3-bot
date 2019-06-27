@@ -55,6 +55,7 @@ Spam:
 Coins:
   bal          Your balance
   send         Send coins
+  baltop       The richest peeps
 
 Fun:
   eight-ball   Ask the 8-ball
@@ -185,7 +186,7 @@ async def que(ctx):  # ping command
     q = mc_queue.get_last()
     mc_queue.close()
     if isinstance(q[0][1], str):
-        await ctx.send("Either 2b2t is down or there was an issue with my bot")
+        await ctx.send("Either 2b2t is down or there was an issue with my bot reason: %s"%q[0][1])
         return
     embed=discord.Embed(color=eval("0x%s"%colour))
     embed.add_field(name="Queue", value=q[0][1], inline=True)
@@ -545,6 +546,28 @@ async def create(ctx, user=None, amt=None):  # transfer coins command send
     else:
         await ctx.send("You dont have permission to do that!")
 
+@client.command(pass_context=True, name="baltop",
+                description="Get a list of the richest people", brief="The richest peeps")
+async def baltop(ctx, user=None, amt=None):  # transfer coins command send
+    coins.start()
+    out = ["The richest people:"]
+    top_users = []
+    max_username = 0
+
+    for i in coins.top(20):
+        try:
+            username = str(client.get_user(int(i[1])))
+        except:
+            pass
+        else:
+            max_username = max([len(username), max_username])
+            top_users.append((username, i[2]))
+
+    for i in top_users:
+        out.append("%s%s%s"%(i[0], " "*(max_username-len(i[0])+2), i[1]))
+    await ctx.send("```\n%s```" %"\n".join(out))
+    coins.close()
+
 
 
 
@@ -555,7 +578,7 @@ except Exception as e:
     try:
         db_interact.close()
     except:
-        print("Tried to save database when bot died and failed")
+        print("Tryed to save database when bot died and failed")
     raise e
 
 input("> ")

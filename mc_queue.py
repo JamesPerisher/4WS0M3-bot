@@ -31,7 +31,6 @@ def add(que, online):
 
 def get24():
     global connection, crsr
-    print(int(time.time()-86400), time.time())
     sql_command = "SELECT * FROM que_history WHERE time > %s" %int(time.time()-86400)
     crsr.execute(sql_command)
 

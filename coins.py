@@ -2,7 +2,13 @@ import sqlite3
 import json
 
 
-coin_info  = json.load(open("data/coins.json"))
+with open("data/coins.json", "r") as f:
+    coin_info  = json.load(f)
+    f.close()
+def data_track():
+    with open("data/coins.json", "w") as f:
+        f.truncate()
+        json.dump(coin_info, f)
 
 def start():
     global connection, crsr
@@ -62,11 +68,13 @@ def buy(user_id, amt):
     if add(user_id, amt):
         coin_info["coins"]["total"] += amt
         coin_info["coins"]["paid"] += amt
+        data_track()
 
 def create(user_id, amt):
     if add(user_id, amt):
         coin_info["coins"]["total"] += amt
         coin_info["coins"]["created"] += amt
+        data_track()
 
 def send(from_user, to_user, amt):
     if amt > 0:
@@ -79,9 +87,13 @@ def send(from_user, to_user, amt):
     else:
         return (False, "Can not send negative amount")
 
+def top(users):
+    sql_command = "SELECT * FROM balances ORDER BY amount DESC LIMIT %s;"%users
+    crsr.execute(sql_command)
+    return crsr.fetchall()
 
 
 if __name__ == '__main__':
     start()
     create_servers_table() # makes the empty database
-    lose()
+    close()
