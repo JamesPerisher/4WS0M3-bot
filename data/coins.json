@@ -1,12 +1,1 @@
-{
-  "coins": {
-    "total": 0,
-    "created": 0,
-    "paid": 0
-  },
-  "transfer": {
-    "buy": 1,
-    "payout": 0.9,
-    "avalable": 0
-  }
-}
+{"coins": {"total": 10, "created": 10, "paid": 0}, "transfer": {"buy": 1, "payout": 0.9, "avalable": 0}}
