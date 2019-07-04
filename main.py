@@ -10,6 +10,7 @@ import sys
 import urllib.request as request
 import json
 from math import *
+import base64
 
 import db_interact
 import mc_queue
@@ -22,7 +23,7 @@ run = False
 configuration = json.load(open("data/config.json"))
 
 mc_queue.que_update = configuration["queue"]["que_update"]
-testing = False   # database, database intereaction and more will not work faster for me testing
+testing = True   # database, database intereaction and more will not work faster for me testing
 print(time.time())
 print("Version: %s"%discord.__version__)
 #Client = discord.Client()
@@ -323,11 +324,13 @@ async def genocide(ctx):  # genocide command
 @client.command(pass_context=True, name="random",
                 description="Generate a number between to numbers", brief="Random number",
                 aliases=["rand"])
-async def randomint(ctx, min=0, max=100):  # random-int command
+async def randomint(ctx, min="0", max="100"):  # random-int command
     try:
-        int(min) + int(max)
+        min = int(min)
+        max = int(max)
     except:
         await ctx.send("Numbers entered must be integeres(whole numbers)")
+        return
     if max < min:
         a = max
         max = min
@@ -568,6 +571,50 @@ async def baltop(ctx, user=None, amt=None):  # transfer coins command send
     await ctx.send("```\n%s```" %"\n".join(out))
     coins.close()
 
+
+#===========================COINS-PAYPAL===========================
+@client.command(pass_context=True, name="buy",
+                description="Buy coins through paypal", brief="Buy coins")
+async def buy(ctx, amt="50000"):  # buy coins command buy
+    # amt default set to about 5 USD
+    try:
+        amt = int(amt)
+    except:
+        await ctx.send("```Invalid value: %s```"%amt)
+        return
+
+    irl_val = ceil((float(amt)/10000.0)*100)/100
+    if irl_val < 1:
+        await ctx.send("```Your purchase must be over $1 current val: $%s```"%irl_val)
+        return
+
+    try:
+        ref_id = str(base64.b85encode(str.encode("1-%s-%s-%s"%(ctx.message.author.id, ctx.message.guild.id, round(time.time())))))[2:-1]
+        referal = ctx.message.guild.name
+    except:
+        ref_id = str(base64.b85encode(str.encode("0-%s-%s-%s"%(ctx.message.author.id, '000000000000000000', round(time.time())))))[2:-1]
+        referal = "Not found"
+
+    embed=discord.Embed(color=0x7e0000)
+    embed.set_author(name="Purchase coins")
+    embed.add_field(name="coins", value="%s"%amt, inline=False)
+    embed.add_field(name="price", value="$%s"%irl_val, inline=False)
+    embed.add_field(name="purchase id", value=ref_id, inline=False)
+    embed.add_field(name="server referal", value=referal, inline=False)
+    embed.set_footer(text="Confirm with %sconfirm or %sclose to cancel"%(bot_prefix, bot_prefix))
+    await ctx.message.author.send(embed=embed)
+
+@client.command(pass_context=True, name="close",
+                description="Close purchase ticket", brief="Close ticket")
+async def close(ctx):  # close ticket command close
+    if str(type(ctx.message.channel)).split("'")[1] == "discord.channel.DMChannel":
+        await ctx.send("ticket closed")
+    else:
+        if ctx.message.channel.name[0:9] == "ticket-07":
+            await ctx.message.channel.delete(reason="ticket closed")
+            return
+
+        await ctx.send("```Go to a open ticket and send %sclose to close it```"%bot_prefix)
 
 
 
