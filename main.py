@@ -113,6 +113,14 @@ async def queue_task(): # presence task
         await push_que()
         await asyncio.sleep(configuration["queue"]["que_update"])
 
+#===========================FUNTIONS===========================
+
+def is_ticket(channel):
+    if str(type(channel)).split("'")[1] == "discord.channel.DMChannel":
+        return "DM"
+    return channel.name[0:9] == "ticket-07"
+
+
 #===========================COMMANDS===========================
 
 
@@ -513,19 +521,13 @@ class Coins(commands.Cog):
         await m.pin()
 
 
-    def is_ticket(channel):
-        if str(type(channel)).split("'")[1] == "discord.channel.DMChannel":
-            return "DM"
-        return ctx.message.channel.name[0:9] == "ticket-07"
-
-
     @commands.command(pass_context=True, name="close",
                     description="Close purchase ticket", brief="Close ticket")
     async def close(self, ctx):  # close ticket command close
-        if is_ticket(self, ctx.message.channel) == "DM":
+        if is_ticket(ctx.message.channel) == "DM":
             await ctx.send("ticket closed")
         else:
-            if is_ticket(self, ctx.message.channel):
+            if is_ticket(ctx.message.channel):
                 await ctx.message.channel.delete(reason="ticket closed")
                 return
 
@@ -534,7 +536,7 @@ class Coins(commands.Cog):
     @commands.command(pass_context=True, name="confirm",
                     description="Confirm purchase", brief="Confirm purchase")
     async def Confirm(self, ctx):  # confirm purchase command confirm
-        if is_ticket(self, ctx.message.channel) or is_ticket(self, ctx.message.channel) == "DM":
+        if is_ticket(ctx.message.channel) or is_ticket(ctx.message.channel) == "DM":
             message = "error"
             for i in await ctx.message.channel.pins():
                 await i.unpin()
@@ -624,35 +626,33 @@ class Admin(commands.Cog):
                 channel.id = 0
                 channel.name = "None"
         db_interact.start()
-        db_interact.update_channel(self, ctx.guild, channel.id)
+        db_interact.update_channel(ctx.guild, channel.id)
         db_interact.close()
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
-
-    @chat.error
-    async def chat_error(error, ctx):
-        await last.channel.send("```You do not have permission to do that!```")
-
-    @commands.command(pass_context=True, name="prefix",
-                    description="Set the bot prefix for the server", brief="Set prefix")
-    @has_permissions(administrator=True)
-    async def preffx(self, ctx, config=None):  # prefix command
-        if config == None:
-            await ctx.send("```A new prifix is required try help prefix```")
-            return
-        if len(config) ==1:
-            await ctx.send("```Updated prefix to: %s```"%config)
-            db_interact.start()
-            db_interact.update_prefix(self, ctx.guild, config)
-            db_interact.close()
-            return
-        else:
-            await ctx.send("```Prifix must be 1 charecters long```")
         return
 
-
-    @preffx.error
-    async def preffx_error(self, ctx, error):
+    @chat.error
+    async def chat_error(self, ctx, error):
         await last.channel.send("```You do not have permission to do that!```")
+        raise error
+
+
+    @commands.command(pass_context=True, name="tickets",
+                    description="Create category for tickets", brief="Create catagory for tickets")
+    @has_permissions(administrator=True)
+    async def chat(self, ctx):  # chat command
+        db_interact.start()
+        cat = await ctx.guild.create_category("RENAME ME")
+        db_interact.update_ticket_cat(ctx.guild, cat.id)
+        db_interact.close()
+        await ctx.send("```Created ticketing : %s```" %cat.name)
+        return
+
+    @chat.error
+    async def chat_error(self, ctx, error):
+        await last.channel.send("```You do not have permission to do that!```")
+        raise error
+
 
     @commands.command(pass_context=True, name="ascii",
                     description="Configure ascii art allowance with [True/False]", brief="Allow ascii art")
@@ -667,7 +667,7 @@ class Admin(commands.Cog):
             db_interact.update_ascii(self, ctx.guild, 0)
         db_interact.close()
     @ascii.error
-    async def ascii_error(error, ctx):
+    async def ascii_error(self, error, ctx):
         await last.channel.send("```You do not have permission to do that!```")
 
 
@@ -678,9 +678,19 @@ class Shop(commands.Cog):
     @commands.command(pass_context=True, name="ticket",
                     description="Open ticket to pay for items", brief="Open ticket")
     async def ticket(self, ctx):  # confirm purchase command confirm
-        if not is_ticket(self, ctx.message.channel):
-            pass
-
+        if not is_ticket(ctx.message.channel):
+            db_interact.start()
+            cat = client.get_channel(int(db_interact.get_ticket(ctx.guild)))
+            db_interact.close()
+            if not str(ctx.message.author.id) in [x.name[9::] for x in cat.text_channels]:
+                await cat.create_text_channel("ticket-07%s"%ctx.message.author.id)
+                overwrite = discord.PermissionOverwrite()
+                overwrite.send_messages = True
+                overwrite.read_messages = True
+                await channel.set_permissions(ctx.message.author, overwrite=overwrite)
+                await ctx.send("Successfully created ticket!")
+            else:
+                await ctx.send("You already have an open ticket.")
 
 def setup(client):
     client.add_cog(Information(client))

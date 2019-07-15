@@ -50,6 +50,17 @@ def update_channel(server, val):
     sql_command = "UPDATE servers SET chat_channel = \"%s\" WHERE server_id = \"%s\"" %(val, server.id) # dont work
     crsr.execute(sql_command)
 
+def update_ticket_cat(server, val):
+    global connection, crsr
+
+    if not ifRecord(server.id):
+        sql_command = "INSERT INTO servers VALUES (NULL, \"%s\", \"0\", NULL, NULL, 1, \"%s\");" %(server.id, server.name)
+        crsr.execute(sql_command)
+        print("added server: %s"%server)
+
+    sql_command = "UPDATE servers SET ticket_cat = \"%s\" WHERE server_id = \"%s\"" %(val, server.id) # dont work
+    crsr.execute(sql_command)
+
 def update_ascii(server, val):
     global connection, crsr
 
@@ -106,7 +117,7 @@ def get_ticket(server):
         crsr.execute(sql_command)
         print("added server: %s"%server)
 
-    sql_command = "SELECT ticket_cat FROM servers WHERE server_id = \"%s\";"%server
+    sql_command = "SELECT ticket_cat FROM servers WHERE server_id = \"%s\";"%server.id
     crsr.execute(sql_command)
     out = crsr.fetchall()[0][0]
     if out == "0":
