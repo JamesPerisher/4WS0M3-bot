@@ -11,6 +11,7 @@ import urllib.request as request
 import json
 from math import *
 import base64
+import os
 
 import db_interact
 import mc_queue
@@ -87,8 +88,21 @@ async def on_message(message):  # on message event
 
 @client.event
 async def on_raw_reaction_add(payload):
-    print(payload)
-
+    # TODO: ignore reactions from self
+    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+    user = client.get_user(payload.user_id)
+    if user.id == client.user.id:
+        return
+    if message.author.id == client.user.id:
+        try:
+            if message.embeds[0].footer.text == "React to this message to add to cart.":
+                with open("data/shop_users/%s.txt"%user.id, "a") as f:
+                    embed = message.embeds[0].to_dict()
+                    f.write("{\"title\":\"%s\",\"description\":\"%s\", \"price\":\"%s\"}\n"%(embed["title"],embed["description"].split("\n")[0], embed["description"].split("\nPrice: ")[1]))
+                await message.clear_reactions()
+                await message.add_reaction("🛒")
+        except IndexError:
+            pass
 #===========================TASKS===========================
 
 
@@ -644,6 +658,27 @@ class Shop(commands.Cog):
     def __init__(self, client):
         self.client = client
 
+    def get_checkout(self, user):
+        open("data/shop_users/%s.txt"%user.id, "a").close()
+        with open("data/shop_users/%s.txt"%user.id, "r") as f:
+            items = f.readlines()
+            f.close()
+        os.remove("data/shop_users/%s.txt"%user.id)
+
+        embed=discord.Embed(title="Shopping Cart", color=0x7e0000)
+        prices = dict()
+        for i in items:
+            data = json.loads(i)
+            embed.add_field(name="%s (%s)"%(data["title"], data["description"]), value=data["price"], inline=False)
+            dict2 = {x.split(": ")[0]:float(x.split(": ")[1]) for x in data["price"].split(", ")}
+            prices = {key: prices.get(key, 0) + dict2.get(key, 0) for key in set(prices) | set(dict2)}
+            prices = {key: round(prices[key], 2) for key in prices}
+
+        price_str = ", ".join(["%s: %s"%(y, prices[y]) for y in prices])
+        price_str = "None" if price_str == None or price_str == "" else price_str
+        embed.add_field(name="Payment options", value=price_str, inline=False)
+        return embed
+
     @commands.command(pass_context=True, name="ticket",
                     description="Open ticket to pay for items", brief="Open ticket")
     async def ticket(self, ctx):  # confirm purchase command confirm
@@ -657,6 +692,7 @@ class Shop(commands.Cog):
                 overwrite.read_messages = True
                 await ctx.message.author.add_roles(discord.utils.get(ctx.guild.roles, name="ticketed user"))
                 await channel.set_permissions(ctx.message.author, overwrite=overwrite)
+                await channel.send(embed=self.get_checkout(ctx.message.author))
                 await ctx.send("Successfully created ticket!")
             else:
                 await ctx.send("You already have an open ticket.")
@@ -703,7 +739,7 @@ class Shop(commands.Cog):
     @commands.command(pass_context=True, name="sell",
                     description="Sell an item using the bots framework.", brief="Sell item")
     async def sell(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
-        embed = discord.Embed(title=str(item_name), description="%s\nPrice: %s"%(item_description, price), color=0x7e0000)
+        embed = discord.Embed(title=str(item_name), description="%s\nPrice: USD: %s, Coins: %s"%(item_description, round(price, 2), round(float(price)*10000), 2), color=0x7e0000)
         embed.set_image(url=item_image_url)
         embed.set_footer(text="React to this message to add to cart.")
         await ctx.message.delete()
