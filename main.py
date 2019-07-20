@@ -627,6 +627,7 @@ class Admin(commands.Cog):
         db_interact.update_ticket_cat(ctx.guild, cat.id)
         db_interact.close()
         role = await ctx.guild.create_role(name="ticketed user")
+        role = await ctx.guild.create_role(name="customer")
         await ctx.send("```For correct funtionality of bot don't edit the role: <@%s>```" %role)
         await ctx.send("```Created ticketing system remember to edit %s's permissions and name to suid ur needs```" %cat.name)
         return
@@ -705,6 +706,10 @@ class Shop(commands.Cog):
         else:
             if is_ticket(ctx.message.channel):
                 if not "ticketed user" in [x.name for x in ctx.message.author.roles]:
+                    ticket_owner = ctx.guild.get_member(int(ctx.message.channel.name[9::]))
+                    await ticket_owner.add_roles(discord.utils.get(ctx.guild.roles, name="customer"))
+                    await ticket_owner.remove_roles(discord.utils.get(ctx.guild.roles, name="ticketed user"))
+
                     await ctx.message.channel.delete(reason="ticket closed")
                 else:
                     await ctx.send("```The ticket will be closed by a shopkeeper when completed.```")
@@ -739,7 +744,7 @@ class Shop(commands.Cog):
     @commands.command(pass_context=True, name="sell",
                     description="Sell an item using the bots framework.", brief="Sell item")
     async def sell(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
-        embed = discord.Embed(title=str(item_name), description="%s\nPrice: USD: %s, Coins: %s"%(item_description, round(price, 2), round(float(price)*10000), 2), color=0x7e0000)
+        embed = discord.Embed(title=str(item_name), description="%s\nPrice: USD: %s, Coins: %s"%(item_description, round(float(price), 2), round(float(price)*10000, 2)), color=0x7e0000)
         embed.set_image(url=item_image_url)
         embed.set_footer(text="React to this message to add to cart.")
         await ctx.message.delete()
