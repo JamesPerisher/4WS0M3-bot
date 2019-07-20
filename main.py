@@ -85,6 +85,10 @@ async def on_message(message):  # on message event
     await client.process_commands(message)  # process commands
 
 
+@client.event
+async def on_raw_reaction_add(payload):
+    print(payload)
+
 #===========================TASKS===========================
 
 
@@ -504,10 +508,10 @@ class Coins(commands.Cog):
             return
 
         try:
-            ref_id = str(base64.b85encode(str.encode("1-%s-%s-%s"%(self, ctx.message.author.id, ctx.message.guild.id, round(time.time())))))[2:-1]
+            ref_id = str(base64.b85encode(str.encode("1-%s-%s-%s"%(ctx.message.author.id, ctx.message.guild.id, round(time.time())))))[2:-1]
             referal = ctx.message.guild.name
         except:
-            ref_id = str(base64.b85encode(str.encode("0-%s-%s-%s"%(self, ctx.message.author.id, '000000000000000000', round(time.time())))))[2:-1]
+            ref_id = str(base64.b85encode(str.encode("0-%s-%s-%s"%(str(ctx.message.author.id), '000000000000000000', str(round(time.time()))))))[2:-1]
             referal = "Not found"
 
         embed=discord.Embed(color=0x7e0000)
@@ -519,43 +523,6 @@ class Coins(commands.Cog):
         embed.set_footer(text="Confirm with %sconfirm or %sclose to cancel"%(bot_prefix, bot_prefix))
         m = await ctx.message.author.send(embed=embed)
         await m.pin()
-
-
-    @commands.command(pass_context=True, name="close",
-                    description="Close purchase ticket", brief="Close ticket")
-    async def close(self, ctx):  # close ticket command close
-        if is_ticket(ctx.message.channel) == "DM":
-            await ctx.send("ticket closed")
-        else:
-            if is_ticket(ctx.message.channel):
-                await ctx.message.channel.delete(reason="ticket closed")
-                return
-
-            await ctx.send("```Go to a open ticket and send %sclose to close it```"%bot_prefix)
-
-    @commands.command(pass_context=True, name="confirm",
-                    description="Confirm purchase", brief="Confirm purchase")
-    async def Confirm(self, ctx):  # confirm purchase command confirm
-        if is_ticket(ctx.message.channel) or is_ticket(ctx.message.channel) == "DM":
-            message = "error"
-            for i in await ctx.message.channel.pins():
-                await i.unpin()
-                if i.author.id == client.user.id:
-                    message = i
-                    break
-            if message == "error":
-                await ctx.send("There was a ticketing issue")
-                return
-
-            em = message.embeds[0].to_dict()
-            coins = em['fields'][0]['value']
-            val = em['fields'][1]['value']
-            id = em['fields'][2]['value']
-
-            await ctx.send("To complete the process, go to https://www.paypal.me/pauln07 and pay the specified amount remember to include the transaction id provided above and/or your discord name preferably id for faster confirmation. **Note: ** Payments are manually authorised and will usually be completed within 24-hour.")
-
-        else:
-            await ctx.send("```Go to a open ticket and send %sconfirm to confirm it```"%bot_prefix)
 
 
 
@@ -637,7 +604,7 @@ class Admin(commands.Cog):
         raise error
 
 
-    @commands.command(pass_context=True, name="tickets",
+    @commands.command(pass_context=True, name="initshop",
                     description="Create category for tickets", brief="Create catagory for tickets")
     @has_permissions(administrator=True)
     async def chat(self, ctx):  # chat command
@@ -645,7 +612,9 @@ class Admin(commands.Cog):
         cat = await ctx.guild.create_category("RENAME ME")
         db_interact.update_ticket_cat(ctx.guild, cat.id)
         db_interact.close()
-        await ctx.send("```Created ticketing : %s```" %cat.name)
+        role = await ctx.guild.create_role(name="ticketed user")
+        await ctx.send("```For correct funtionality of bot don't edit the role: <@%s>```" %role)
+        await ctx.send("```Created ticketing system remember to edit %s's permissions and name to suid ur needs```" %cat.name)
         return
 
     @chat.error
@@ -683,14 +652,67 @@ class Shop(commands.Cog):
             cat = client.get_channel(int(db_interact.get_ticket(ctx.guild)))
             db_interact.close()
             if not str(ctx.message.author.id) in [x.name[9::] for x in cat.text_channels]:
-                await cat.create_text_channel("ticket-07%s"%ctx.message.author.id)
+                channel = await cat.create_text_channel("ticket-07%s"%ctx.message.author.id)
                 overwrite = discord.PermissionOverwrite()
-                overwrite.send_messages = True
                 overwrite.read_messages = True
+                await ctx.message.author.add_roles(discord.utils.get(ctx.guild.roles, name="ticketed user"))
                 await channel.set_permissions(ctx.message.author, overwrite=overwrite)
                 await ctx.send("Successfully created ticket!")
             else:
                 await ctx.send("You already have an open ticket.")
+
+    @commands.command(pass_context=True, name="close",
+                    description="Close purchase ticket", brief="Close ticket")
+    async def close(self, ctx):  # close ticket command close
+        if is_ticket(ctx.message.channel) == "DM":
+            await ctx.send("ticket closed")
+        else:
+            if is_ticket(ctx.message.channel):
+                if not "ticketed user" in [x.name for x in ctx.message.author.roles]:
+                    await ctx.message.channel.delete(reason="ticket closed")
+                else:
+                    await ctx.send("```The ticket will be closed by a shopkeeper when completed.```")
+                return
+
+            await ctx.send("```Go to a open ticket and send %sclose to close it```"%bot_prefix)
+
+    @commands.command(pass_context=True, name="confirm",
+                    description="Confirm purchase", brief="Confirm purchase")
+    async def Confirm(self, ctx):  # confirm purchase command confirm
+        if is_ticket(ctx.message.channel) or is_ticket(ctx.message.channel) == "DM":
+            message = "error"
+            for i in await ctx.message.channel.pins():
+                await i.unpin()
+                if i.author.id == client.user.id:
+                    message = i
+                    break
+            if message == "error":
+                await ctx.send("There was a ticketing issue")
+                return
+
+            em = message.embeds[0].to_dict()
+            coins = em['fields'][0]['value']
+            val = em['fields'][1]['value']
+            id = em['fields'][2]['value']
+
+            await ctx.send("To complete the process, go to https://www.paypal.me/pauln07 and pay the specified amount remember to include the transaction id provided above and/or your discord name preferably id for faster confirmation. **Note: ** Payments are manually authorised and will usually be completed within 24-hour.")
+        else:
+            await ctx.send("```Go to a open ticket and send %sconfirm to confirm it```"%bot_prefix)
+
+
+    @commands.command(pass_context=True, name="sell",
+                    description="Sell an item using the bots framework.", brief="Sell item")
+    async def sell(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
+        embed = discord.Embed(title=str(item_name), description="%s\nPrice: %s"%(item_description, price), color=0x7e0000)
+        embed.set_image(url=item_image_url)
+        embed.set_footer(text="React to this message to add to cart.")
+        await ctx.message.delete()
+        sale_item = await ctx.send(embed=embed)
+        await sale_item.add_reaction("🛒")
+
+
+
+
 
 def setup(client):
     client.add_cog(Information(client))
