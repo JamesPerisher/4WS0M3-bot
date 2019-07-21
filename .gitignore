@@ -1,6 +1,7 @@
 # files
 
 tokens*.bat
+monitor.bat
 *servers.db
 *queue.db
 *coins.db

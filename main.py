@@ -88,21 +88,23 @@ async def on_message(message):  # on message event
 
 @client.event
 async def on_raw_reaction_add(payload):
-    # TODO: ignore reactions from self
-    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
-    user = client.get_user(payload.user_id)
-    if user.id == client.user.id:
-        return
-    if message.author.id == client.user.id:
-        try:
-            if message.embeds[0].footer.text == "React to this message to add to cart.":
-                with open("data/shop_users/%s.txt"%user.id, "a") as f:
-                    embed = message.embeds[0].to_dict()
-                    f.write("{\"title\":\"%s\",\"description\":\"%s\", \"price\":\"%s\"}\n"%(embed["title"],embed["description"].split("\n")[0], embed["description"].split("\nPrice: ")[1]))
-                await message.clear_reactions()
-                await message.add_reaction("🛒")
-        except IndexError:
-            pass
+    try:
+        message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+        user = client.get_user(payload.user_id)
+        if user.id == client.user.id:
+            return
+        if message.author.id == client.user.id:
+            try:
+                if message.embeds[0].footer.text == "React to this message to add to cart.":
+                    with open("data/shop_users/%s.txt"%user.id, "a") as f:
+                        embed = message.embeds[0].to_dict()
+                        f.write("{\"title\":\"%s\",\"description\":\"%s\", \"price\":\"%s\"}\n"%(embed["title"],embed["description"].split("\n")[0], embed["description"].split("\nPrice: ")[1]))
+                    await message.clear_reactions()
+                    await message.add_reaction("🛒")
+            except IndexError:
+                pass
+    except discord.errors.Forbidden:
+        pass
 #===========================TASKS===========================
 
 
@@ -459,8 +461,8 @@ class Coins(commands.Cog):
                 await ctx.send("Creation of %s coins was successfull"%amt)
                 coins.close()
                 return
-            except ValueError:
-                await ctx.send("Invalid value **note:** you can only send full coins")
+            except ValueError as e:
+                await ctx.send("Invalid value: %s"%e)
                 return
         else:
             await ctx.send("You dont have permission to do that!")
@@ -744,11 +746,18 @@ class Shop(commands.Cog):
     @commands.command(pass_context=True, name="sell",
                     description="Sell an item using the bots framework.", brief="Sell item")
     async def sell(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
+        if item_description.strip() == "":
+            await ctx.send("```A description is required```")
+            return
         embed = discord.Embed(title=str(item_name), description="%s\nPrice: USD: %s, Coins: %s"%(item_description, round(float(price), 2), round(float(price)*10000, 2)), color=0x7e0000)
         embed.set_image(url=item_image_url)
         embed.set_footer(text="React to this message to add to cart.")
+        try:
+            sale_item = await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send("```Invalid command: %s```"%e)
+            return
         await ctx.message.delete()
-        sale_item = await ctx.send(embed=embed)
         await sale_item.add_reaction("🛒")
 
 
