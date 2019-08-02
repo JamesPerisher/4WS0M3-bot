@@ -529,6 +529,7 @@ class Coins(commands.Cog):
         except:
             ref_id = str(base64.b85encode(str.encode("0-%s-%s-%s"%(str(ctx.message.author.id), '000000000000000000', str(round(time.time()))))))[2:-1]
             referal = "Not found"
+        ref_id = ref_id.replace("*", ".")
 
         embed=discord.Embed(color=0x7e0000)
         embed.set_author(name="Purchase coins")

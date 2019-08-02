@@ -2,6 +2,7 @@
 
 tokens*.bat
 monitor.bat
+payment_confirmer.py
 *servers.db
 *queue.db
 *coins.db

@@ -15,7 +15,7 @@ client = commands.Bot(command_prefix=".")
 
 @client.event
 async def on_ready():
-    inp = input("1) servers and channels\n2) roles\n3) roles and members\n> ")
+    inp = input("1) servers and channels\n2) roles\n3) roles and members\n4) ids and names\n> ")
     if inp == "1":
         print("\nServers")
         for i in client.guilds:
@@ -42,5 +42,14 @@ async def on_ready():
                 print("|   +---%s"%j.name)
                 for k in j.members:
                     print("|   |       %s"%str(k))
+    if inp == "4":
+        out = {}
+        print("\nServers")
+        for i in client.guilds:
+            print("+---%s"%i.name)
+            for j in i.roles:
+                for k in j.members:
+                    out[k.id] = str(k)
+        print("\n".join(["%s: %s" %(x, out[x]) for x in out]))
 
 client.run(sys.argv[1])
