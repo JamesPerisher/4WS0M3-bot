@@ -8,6 +8,7 @@ payment_confirmer.py
 *coins.db
 *Minecraft_Alts_100.txt
 fetch_que.py
+data/coins.json
 
 
 # logs/regenerated/cache
