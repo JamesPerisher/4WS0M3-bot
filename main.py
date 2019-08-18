@@ -426,11 +426,11 @@ class Coins(commands.Cog):
             await ctx.send("Invalid user")
             return
 
-    @commands.command(pass_context=True, name="send",
+    @commands.command(pass_context=True, name="pay",
                     description="Transfers coins to another user", brief="Send coins")
-    async def bal_send(self, ctx, to_user=None, amt=None, a=None):  # transfer coins command send
+    async def pay(self, ctx, to_user=None, amt=None, a=None):  # transfer coins command send
         if to_user == None or amt == None:
-            await ctx.send("usage %ssend [recipient] [amount]"%bot_prefix)
+            await ctx.send("usage %spay [recipient] [amount]"%bot_prefix)
             return
         try:
             coins.start()
@@ -446,12 +446,12 @@ class Coins(commands.Cog):
             await ctx.send("Invalid value **note:** you can only send full coins")
             return
 
-    @commands.command(pass_context=True, name="sendf",
+    @commands.command(pass_context=True, name="fsend",
                     description="Transfers coins from user to another", brief="Force send coins")
     async def bal_send(self, ctx, from_user=None, to_user=None, amt=None):  # transfer coins command send
         if ctx.message.author.id in [391109829755797514, 391340428315852801]:
             if to_user == None or amt == None:
-                await ctx.send("usage %ssend [recipient] [amount]"%bot_prefix)
+                await ctx.send("usage %sfsend [sender] [recipient] [amount]"%bot_prefix)
                 return
             try:
                 coins.start()
@@ -501,7 +501,7 @@ class Coins(commands.Cog):
                 coins.start()
                 user = client.get_user(int(user.replace("<@", "").replace(">", "")))
                 coins.buy(user.id, int(amt))
-                await ctx.send("Creation of %s coins was successfull"%amt)
+                await ctx.send("confirmation of %s coins was successfull"%amt)
                 coins.close()
                 return
             except ValueError:
