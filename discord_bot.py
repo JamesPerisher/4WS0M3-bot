@@ -90,6 +90,7 @@ async def on_raw_reaction_add(payload):
                     with open("data/shop_users/%s.txt"%user.id, "a") as f:
                         embed = message.embeds[0].to_dict()
                         f.write("{\"title\":\"%s\",\"description\":\"%s\", \"price\":\"%s\"}\n"%(embed["title"],embed["description"].split("\n")[0], embed["description"].split("\nPrice: ")[1]))
+                        ## TODO: thing here ^^^
                     await message.clear_reactions()
                     await message.add_reaction("🛒")
             except IndexError:
@@ -101,7 +102,7 @@ def push_live_chat(data):
     global live_chat_que
     try:
         importlib.reload(chat_manager)
-        print(chat_manager.parse(data))
+        chat_manager.parse(data)
     except Exception as e:
         print(e)
     live_chat_que.append(data)
@@ -152,6 +153,35 @@ def is_ticket(channel): # TODO: add to check if in ticket category
 
 
 #===========================COMMANDS===========================
+
+
+
+class LiveChat(commands.Cog):
+    def __init__(self, client):
+        self.client = client
+
+    @commands.command(pass_context=True,
+                    name="chat",
+                    description="Send live chat message to 2b2t.",
+                    brief="Send chat message")
+    async def chat(self, ctx):  # chat command
+        chat_manager.start()
+        chat_manager.parse_send(ctx.author, "chat".join(str(ctx.message.content).split("chat")[1::]))
+        chat_manager.close()
+
+
+    @commands.command(pass_context=True,
+                    name="Add chat user",
+                    description="Create an account for live chat messages on 2b2t",
+                    brief="Send chat account")
+    async def add_chat(self, ctx, level):
+        chat_manager.start()
+        chat_manager.add(ctx.author.id, level, "#008c94", end_date)
+        chat_manager.close()
+
+
+
+
 
 
 class Information(commands.Cog):
@@ -607,10 +637,10 @@ class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(pass_context=True, name="chat",
+    @commands.command(pass_context=True, name="set_chat",
                     description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
     @has_permissions(administrator=True)
-    async def chat(self, ctx, channel):  # chat command
+    async def set_chat(self, ctx, channel):  # chat command
         try:
             channel = client.get_channel(int(str(channel).replace("<", "").replace(">", "").replace("#", "")))
         except Exception as e:
@@ -625,7 +655,7 @@ class Admin(commands.Cog):
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
         return
 
-    @chat.error
+    @set_chat.error
     async def chat_error(self, ctx, error):
         await last.channel.send("```You do not have permission to do that!```")
         raise error
@@ -634,7 +664,7 @@ class Admin(commands.Cog):
     @commands.command(pass_context=True, name="initshop",
                     description="Create category for tickets", brief="Create catagory for tickets")
     @has_permissions(administrator=True)
-    async def chat(self, ctx):  # chat command
+    async def initshop(self, ctx):  # chat command
         db_interact.start()
         cat = await ctx.guild.create_category("RENAME ME")
         db_interact.update_ticket_cat(ctx.guild, cat.id)
@@ -645,7 +675,7 @@ class Admin(commands.Cog):
         await ctx.send("```Created ticketing system remember to edit %s's permissions and name to suid ur needs```" %cat.name)
         return
 
-    @chat.error
+    @initshop.error
     async def chat_error(self, ctx, error):
         await last.channel.send("```You do not have permission to do that!```")
         raise error
@@ -781,6 +811,7 @@ def setup(client, send_message=None):
     client.add_cog(Utilities(client))
     client.add_cog(Spam(client))
     client.add_cog(Coins(client))
+    client.add_cog(LiveChat(client))
     client.add_cog(Fun(client))
     client.add_cog(Admin(client))
     client.add_cog(Shop(client))
