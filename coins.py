@@ -2,13 +2,8 @@ import sqlite3
 import json
 
 
-with open("data/coins.json", "r") as f:
-    coin_info  = json.load(f)
-    f.close()
 def data_track():
-    with open("data/coins.json", "w") as f:
-        f.truncate()
-        json.dump(coin_info, f)
+    pass
 
 def start():
     global connection, crsr
