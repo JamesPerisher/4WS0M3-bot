@@ -6,8 +6,14 @@ payment_confirmer.py
 *servers.db
 *queue.db
 *coins.db
+*users.db
+*.db-journal
 *Minecraft_Alts_100.txt
 fetch_que.py
+
+# minecraft client
+pyCraft/*
+minecraft/*
 
 
 # logs/regenerated/cache
