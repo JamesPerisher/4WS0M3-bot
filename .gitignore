@@ -10,6 +10,7 @@ payment_confirmer.py
 *.db-journal
 *Minecraft_Alts_100.txt
 fetch_que.py
+data/coins.json
 
 # minecraft client
 pyCraft/*
