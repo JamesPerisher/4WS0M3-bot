@@ -491,25 +491,6 @@ class Coins(commands.Cog):
         else:
             await ctx.send("You dont have permission to do that!")
 
-    @commands.command(pass_context=True, name="conf_coin")
-    async def conf_coin(self, ctx, user=None, amt=None):  # transfer coins command send
-        if ctx.message.author.id in [391109829755797514]:
-            if user == None or amt == None:
-                await ctx.send("usage %screate [user] [amount]"%bot_prefix)
-                return
-            try:
-                coins.start()
-                user = client.get_user(int(user.replace("<@", "").replace(">", "")))
-                coins.buy(user.id, int(amt))
-                await ctx.send("confirmation of %s coins was successfull"%amt)
-                coins.close()
-                return
-            except ValueError:
-                await ctx.send("Invalid value **note:** you can only send full coins")
-                return
-        else:
-            await ctx.send("You dont have permission to do that!")
-
     @commands.command(pass_context=True, name="baltop",
                     description="Get a list of the richest people", brief="The richest peeps")
     async def baltop(self, ctx, user=None, amt=None):  # transfer coins command send

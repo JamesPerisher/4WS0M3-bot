@@ -2,14 +2,6 @@ import sqlite3
 import json
 
 
-with open("data/coins.json", "r") as f:
-    coin_info  = json.load(f)
-    f.close()
-def data_track():
-    with open("data/coins.json", "w") as f:
-        f.truncate()
-        json.dump(coin_info, f)
-
 def start():
     global connection, crsr
     connection = sqlite3.connect("data/coins.db")
@@ -65,16 +57,10 @@ def add(user_id, amt):
     return True
 
 def buy(user_id, amt):
-    if add(user_id, amt):
-        coin_info["coins"]["total"] += amt
-        coin_info["coins"]["paid"] += amt
-        data_track()
+    return add(user_id, amt)
 
 def create(user_id, amt):
-    if add(user_id, amt):
-        coin_info["coins"]["total"] += amt
-        coin_info["coins"]["created"] += amt
-        data_track()
+    return add(user_id, amt)
 
 def send(from_user, to_user, amt):
     if amt > 0:
