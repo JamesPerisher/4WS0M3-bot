@@ -744,7 +744,7 @@ class Shop(commands.Cog):
             val = em['fields'][1]['value']
             id = em['fields'][2]['value']
 
-            await ctx.send("To complete the process, go to https://www.paypal.me/pauln07 and pay the specified amount remember to include the transaction id provided above and/or your discord name preferably id for faster confirmation. **Note: ** Payments are manually authorised and will usually be completed within 24-hour.")
+            await ctx.send("To complete the process, go to https://www.paypal.me/pauln07/%sUSD and remember to include the transaction id provided above and/or your discord name. \n**Note: ** Payments are manually authorised and will usually be completed within 24-hour." %val.replace("$",""))
         else:
             await ctx.send("```Go to a open ticket and send %sconfirm to confirm it```"%bot_prefix)
 
