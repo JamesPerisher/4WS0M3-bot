@@ -102,25 +102,27 @@ def parse(data):
         return None
 
     if data[0]:
-        return ("#ff7700", data[1])
+        return (0xff7700, data[1])
 
     sp = data[1].split(">")
     user = sp[0].split("<")
     message = ">".join(sp[1::])
     if len(user) == 2:
         if message[1] == ">":
-            return ("#076108", "**<%s> **%s" %(user[1], message))
+            return (0x076108, "**<%s> **%s" %(user[1], message))
         else:
-            return ("#1f2999", "**<%s> **%s" %(user[1], message))
+            if user[1] in ["PaulN07", "PaulN07_1", "StashX"]:
+                return (0x7e0000, "**<%s> **%s" %(user[1], message))
+            return (0x1f2999, "**<%s> **%s" %(user[1], message))
 
     if data[1].split(" ")[1] == "whispers:":
         if not ">" in data[1].split(" ")[0]:
-            return ("#a900e3", data[1])
+            return (0xa900e3, data[1])
     if " ".join(data[1].split(" ")[1::]) == "joined the game":
         if not ">" in data[1].split(" ")[0]:
-            return ("#a900e3", data[1])
+            return (0xa900e3, data[1])
 
-    return ("#ff00ff", "**Error**: %s"%data[1])
+    return (0xffffff, "%s"%data[1])
 
 
 def parse_send(user, message):

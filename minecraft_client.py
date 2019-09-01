@@ -48,6 +48,8 @@ class minecraft_client():
 
 
     def send_message(self, message):
+        if message.strip() == "" or message == None:
+            return False
         packet = ChatPacket()
         packet.message = message
         self.connection.write_packet(packet)

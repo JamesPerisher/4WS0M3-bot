@@ -140,8 +140,20 @@ async def queue_task(): # presence task
 async def chat_task():
     global live_chat_que
     while True:
+        db_interact.start()
+        chatc = db_interact.all_chat()
+        db_interact.close()
         while len(live_chat_que) > 0:
-            live_chat_que.pop(0)
+            for i in chatc:
+                try:
+                    i = client.get_channel(int(i))
+                except ValueError:
+                    continue
+                if isinstance(i, discord.TextChannel):
+                    m = chat_manager.parse(live_chat_que.pop(0))
+                    if m == None:
+                        continue
+                    await i.send(embed=discord.Embed(title=m[1], color=m[0]))
         await asyncio.sleep(2.5) # second to sleep
 
 #===========================FUNTIONS===========================
