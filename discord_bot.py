@@ -26,7 +26,6 @@ live_chat_que = []
 
 configuration = json.load(open("data/config.json"))
 
-mc_queue.que_update = configuration["queue"]["que_update"]
 print(time.time())
 print("Version: %s"%discord.__version__)
 bot_prefix = configuration["bot"]["prefix"]
@@ -48,6 +47,8 @@ client = commands.Bot(
 async def on_ready():  # bot start event
     global run
     if not run:
+        client.mc_queue.que_update = configuration["queue"]["que_update"]
+
         client.loop.create_task(presence_task())
         client.loop.create_task(queue_task())
         client.loop.create_task(chat_task())
@@ -101,8 +102,7 @@ async def on_raw_reaction_add(payload):
 def push_live_chat(data):
     global live_chat_que
     try:
-        importlib.reload(chat_manager)
-        chat_manager.parse(data)
+        client.chat_manager.parse(data)
     except Exception as e:
         print(e)
     live_chat_que.append(data)
@@ -123,10 +123,8 @@ async def presence_task(): # presence task
 
 async def push_que(): # push current que to file
     try:
-        mc_queue.start()
-        mc_queue.add(*mc_queue.get_queue())
-        mc_queue.que24()
-        mc_queue.close()
+        client.mc_queue.add(*client.mc_queue.get_queue())
+        client.mc_queue.que24()
         print("Pushed to mc_queue")
     except:
         print("Add to que failed")
@@ -140,9 +138,7 @@ async def queue_task(): # presence task
 async def chat_task():
     global live_chat_que
     while True:
-        db_interact.start()
-        chatc = db_interact.all_chat()
-        db_interact.close()
+        chatc = client.db_interact.all_chat()
         while len(live_chat_que) > 0:
             for i in chatc:
                 try:
@@ -150,7 +146,7 @@ async def chat_task():
                 except ValueError:
                     continue
                 if isinstance(i, discord.TextChannel):
-                    m = chat_manager.parse(live_chat_que.pop(0))
+                    m = client.chat_manager.parse(live_chat_que.pop(0))
                     if m == None:
                         continue
                     await i.send(embed=discord.Embed(title=m[1], color=m[0]))
@@ -176,10 +172,8 @@ class LiveChat(commands.Cog):
                     name="chat",
                     description="Send live chat message to 2b2t.",
                     brief="Send chat message")
-    async def chat(self, ctx):  # chat command
-        chat_manager.start()
-        chat_manager.parse_send(ctx.author, "chat".join(str(ctx.message.content).split("chat")[1::]))
-        chat_manager.close()
+    async def send_chat_message_command(self, ctx):  # chat command
+        client.chat_manager.parse_send(ctx.author, "chat".join(str(ctx.message.content).split("chat")[1::]))
 
 
     @commands.command(pass_context=True,
@@ -187,9 +181,7 @@ class LiveChat(commands.Cog):
                     description="Create an account for live chat messages on 2b2t",
                     brief="Send chat account")
     async def add_chat(self, ctx, level):
-        chat_manager.start()
-        chat_manager.add(ctx.author.id, level, "#008c94", end_date)
-        chat_manager.close()
+        client.chat_manager.add(ctx.author.id, level, "#008c94", end_date)
 
 
 
@@ -389,9 +381,7 @@ class Utilities(commands.Cog):
                     description="Get queue from 2b2t.org",
                     brief="server queue")
     async def que(self, ctx):  # ping command
-        mc_queue.start()
-        q = mc_queue.get_last()
-        mc_queue.close()
+        q = client.mc_queue.get_last()
         if isinstance(q[0][1], str):
             await ctx.send("Either 2b2t is down or there was an issue with my bot reason: %s"%q[0][1])
             return
@@ -408,12 +398,6 @@ class Utilities(commands.Cog):
                     brief="server queue graph")
     async def queue(self, ctx):  # ping command
         await ctx.send(file=discord.File("data/que-graphs/current.png", filename="data/que-graphs/current.png", spoiler=False))
-
-    @commands.command(pass_context=True, name="admin-help",
-                    description="Get help on admin command", brief="admin commands help",
-                    aliases=["help-admin", "adminhelp","admin"])
-    async def admin_help(self, ctx):  # admin-help command
-        await ctx.send(admin_help_text)
 
 
 class Spam(commands.Cog):
@@ -463,16 +447,12 @@ class Coins(commands.Cog):
                     aliases=["bal"])
     async def bal(self, ctx, user=None):  # get player balance bal
         if user == None:
-            coins.start()
             user = ctx.message.author
-            await ctx.send("<@%s> has a balance of: %s" %(user.id, coins.balance(user.id)))
-            coins.close()
+            await ctx.send("<@%s> has a balance of: %s" %(user.id, client.coins.balance(user.id)))
             return
         try:
-            coins.start()
             user = client.get_user(int(user.replace("<@", "").replace(">", "")))
-            await ctx.send("<@%s> has a balance of: %s" %(user.id, coins.balance(user.id)))
-            coins.close()
+            await ctx.send("<@%s> has a balance of: %s" %(user.id, client.coins.balance(user.id)))
             return
         except ValueError:
             await ctx.send("Invalid user")
@@ -485,14 +465,12 @@ class Coins(commands.Cog):
             await ctx.send("usage %ssend [recipient] [amount]"%bot_prefix)
             return
         try:
-            coins.start()
             user = client.get_user(int(to_user.replace("<@", "").replace(">", "")))
-            send = coins.send(self, ctx.message.author.id,user.id, int(amt))
+            send = client.coins.send(self, ctx.message.author.id,user.id, int(amt))
             if send[0]:
                 await ctx.send("Transfer of %s coins was successfull"%amt)
             else:
                 await ctx.send(send[1])
-            coins.close()
             return
         except ValueError:
             await ctx.send("Invalid value **note:** you can only send full coins")
@@ -507,11 +485,9 @@ class Coins(commands.Cog):
                 await ctx.send("usage %screate [user] [amount]"%bot_prefix)
                 return
             try:
-                coins.start()
                 user = client.get_user(int(user.replace("<@", "").replace(">", "")))
-                coins.create(user.id, int(amt))
+                client.coins.create(user.id, int(amt))
                 await ctx.send("Creation of %s coins was successfull"%amt)
-                coins.close()
                 return
             except ValueError as e:
                 await ctx.send("Invalid value: %s"%e)
@@ -526,11 +502,9 @@ class Coins(commands.Cog):
                 await ctx.send("usage %screate [user] [amount]"%bot_prefix)
                 return
             try:
-                coins.start()
                 user = client.get_user(int(user.replace("<@", "").replace(">", "")))
-                coins.buy(user.id, int(amt))
+                client.coins.buy(user.id, int(amt))
                 await ctx.send("Creation of %s coins was successfull"%amt)
-                coins.close()
                 return
             except ValueError:
                 await ctx.send("Invalid value **note:** you can only send full coins")
@@ -541,12 +515,11 @@ class Coins(commands.Cog):
     @commands.command(pass_context=True, name="baltop",
                     description="Get a list of the richest people", brief="The richest peeps")
     async def baltop(self, ctx, user=None, amt=None):  # transfer coins command send
-        coins.start()
         out = ["The richest people:"]
         top_users = []
         max_username = 0
 
-        for i in coins.top(20):
+        for i in client.coins.top(20):
             try:
                 username = str(client.get_user(int(i[1])))
             except:
@@ -558,7 +531,6 @@ class Coins(commands.Cog):
         for i in top_users:
             out.append("%s%s%s"%(i[0], " "*(max_username-len(i[0])+2), i[1]))
         await ctx.send("```\n%s```" %"\n".join(out))
-        coins.close()
 
     @commands.command(pass_context=True, name="buy",
                     description="Buy coins through paypal", brief="Buy coins")
@@ -633,14 +605,12 @@ class Fun(commands.Cog):
                     description="Sends a random food item", brief="In case you get hungry",
                     aliases=["foods"])
     async def getfood(self, ctx):  # foods command
-        db_interact.start()
-        if db_interact.is_ascii(self, ctx.guild):
+        if client.db_interact.is_ascii(self, ctx.guild):
             with open("data/ascii_art.txt", "r") as f:
                 lines = f.readlines()
                 await ctx.send("```%s```" %random.choice(lines).replace("\\n", "\n"))
         else:
             await ctx.send("```Ascii art is disabled on this server idk why tho.```")
-        db_interact.close()
 
 
 
@@ -648,6 +618,25 @@ class Fun(commands.Cog):
 class Admin(commands.Cog):
     def __init__(self, client):
         self.client = client
+
+    @commands.command(pass_context=True, name="initshop",
+                    description="Create category for tickets", brief="Create catagory for tickets")
+    @has_permissions(administrator=True)
+    async def initshop(self, ctx):  # chat command
+        cat = await ctx.guild.create_category("RENAME ME")
+        client.db_interact.update_ticket_cat(ctx.guild, cat.id)
+        role = await ctx.guild.create_role(name="ticketed user")
+        role = await ctx.guild.create_role(name="customer")
+        await ctx.send("```For correct funtionality of bot don't edit the role: <@%s>```" %role)
+        await ctx.send("```Created ticketing system remember to edit %s's permissions and name to suid ur needs```" %cat.name)
+        return
+
+    @initshop.error
+    async def initshop_error(self, ctx, error):
+        await last.channel.send("```You do not have permission to do that!```")
+        raise error
+
+
 
     @commands.command(pass_context=True, name="set_chat",
                     description="Set the channel for the in-game chat from channel name or id", brief="Set games chat channel")
@@ -661,34 +650,12 @@ class Admin(commands.Cog):
                 channel = lambda : print(end="")
                 channel.id = 0
                 channel.name = "None"
-        db_interact.start()
-        db_interact.update_channel(ctx.guild, channel.id)
-        db_interact.close()
+        client.db_interact.update_channel(ctx.guild, channel.id)
         await ctx.send("```Set in-game live chat to: %s```" %channel.name)
         return
 
     @set_chat.error
-    async def chat_error(self, ctx, error):
-        await last.channel.send("```You do not have permission to do that!```")
-        raise error
-
-
-    @commands.command(pass_context=True, name="initshop",
-                    description="Create category for tickets", brief="Create catagory for tickets")
-    @has_permissions(administrator=True)
-    async def initshop(self, ctx):  # chat command
-        db_interact.start()
-        cat = await ctx.guild.create_category("RENAME ME")
-        db_interact.update_ticket_cat(ctx.guild, cat.id)
-        db_interact.close()
-        role = await ctx.guild.create_role(name="ticketed user")
-        role = await ctx.guild.create_role(name="customer")
-        await ctx.send("```For correct funtionality of bot don't edit the role: <@%s>```" %role)
-        await ctx.send("```Created ticketing system remember to edit %s's permissions and name to suid ur needs```" %cat.name)
-        return
-
-    @initshop.error
-    async def chat_error(self, ctx, error):
+    async def set_chat_error(self, ctx, error):
         await last.channel.send("```You do not have permission to do that!```")
         raise error
 
@@ -697,14 +664,12 @@ class Admin(commands.Cog):
                     description="Configure ascii art allowance with [True/False]", brief="Allow ascii art")
     @has_permissions(administrator=True)
     async def ascii(self, ctx, config):  # ascii command
-        db_interact.start()
         if config.lower().strip() == "true":
             await ctx.send("```Updated show ascii to True```")
-            db_interact.update_ascii(self, ctx.guild, 1)
+            client.db_interact.update_ascii(self, ctx.guild, 1)
         if config.lower().strip() == "false":
             await ctx.send("```Updated show ascii to False```")
-            db_interact.update_ascii(self, ctx.guild, 0)
-        db_interact.close()
+            client.db_interact.update_ascii(self, ctx.guild, 0)
     @ascii.error
     async def ascii_error(self, error, ctx):
         await last.channel.send("```You do not have permission to do that!```")
@@ -739,9 +704,7 @@ class Shop(commands.Cog):
                     description="Open ticket to pay for items", brief="Open ticket")
     async def ticket(self, ctx):  # confirm purchase command confirm
         if not is_ticket(ctx.message.channel):
-            db_interact.start()
-            cat = client.get_channel(int(db_interact.get_ticket(ctx.guild)))
-            db_interact.close()
+            cat = client.get_channel(int(client.db_interact.get_ticket(ctx.guild)))
             if not str(ctx.message.author.id) in [x.name[9::] for x in cat.text_channels]:
                 channel = await cat.create_text_channel("ticket-07%s"%ctx.message.author.id)
                 overwrite = discord.PermissionOverwrite()
@@ -798,7 +761,7 @@ class Shop(commands.Cog):
 
     @commands.command(pass_context=True, name="sell",
                     description="Sell an item using the bots framework.", brief="Sell item")
-    async def sell(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
+    async def sell_item_command(self, ctx, item_name, item_description, item_image_url, price):  # sell items command sell
         if item_description.strip() == "":
             await ctx.send("```A description is required```")
             return
@@ -817,8 +780,17 @@ class Shop(commands.Cog):
 
 
 
-def setup(client, send_message=None):
+def setup(client, db, send_message=None):
+    # setup mc send messag event
     client.send_message = send_message
+
+    # setup database to write to
+    client.mc_queue     = mc_queue.database(db)
+    client.db_interact  = db_interact.database(db)
+    client.chat_manager = chat_manager.database(db)
+    client.coins        = coins.database(db)
+
+    # add bot commands
     client.add_cog(Information(client))
     client.add_cog(Utilities(client))
     client.add_cog(Spam(client))
@@ -830,6 +802,6 @@ def setup(client, send_message=None):
 
 
 if __name__ == '__main__':
-    setup(client)
+    setup(client, None)
     client.run(sys.argv[1])
     input("> ")

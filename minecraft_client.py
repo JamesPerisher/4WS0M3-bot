@@ -46,6 +46,9 @@ class minecraft_client():
     def connect(self):
         self.connection.connect()
 
+    def disconnect(self, immediate=False):
+        self.connection.disconnect(immediate=immediate)
+
 
     def send_message(self, message):
         if message.strip() == "" or message == None:
